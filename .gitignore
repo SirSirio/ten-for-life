@@ -1,0 +1,15 @@
+# Build output (GitHub Actions rebuilds it on every push)
+app/build/
+
+# Private: your profile, personal health research and the original export stay on this computer only.
+# The repo is public (free GitHub Pages), so nothing personal goes in it.
+research/
+private/
+archive/
+
+# Tooling
+.out-of-code-insights/
+.playwright-mcp/
+__pycache__/
+.DS_Store
+Thumbs.db

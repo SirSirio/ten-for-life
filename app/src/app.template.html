@@ -1,0 +1,771 @@
+<title>@APP_NAME@</title>
+<meta charset="utf-8">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@300;400;500&display=swap">
+<style>
+/*@STYLE@*/
+</style>
+
+<div class="app">
+  <header class="top">
+    <div>
+      <h1 id="title">@APP_NAME@</h1>
+      <div class="date" id="dateline"></div>
+    </div>
+    <span class="sync" id="sync"><i></i><span>this device</span></span>
+  </header>
+  <main><div class="wrap" id="view"></div></main>
+  <nav class="tabs" aria-label="Sections"><div class="inner">
+    <!-- icons: Phosphor, light weight (MIT) -->
+    <button data-tab="today" aria-current="page"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M240,154H197.28a70.91,70.91,0,0,0,.72-10,70,70,0,0,0-140,0,70.91,70.91,0,0,0,.72,10H16a6,6,0,0,0,0,12H240a6,6,0,0,0,0-12ZM70,144a58,58,0,1,1,115.13,10H70.87A58.63,58.63,0,0,1,70,144Zm144,56a6,6,0,0,1-6,6H48a6,6,0,0,1,0-12H208A6,6,0,0,1,214,200ZM74.63,42.69a6,6,0,0,1,10.74-5.37l8,16a6,6,0,0,1-10.74,5.36Zm-56,50.63a6,6,0,0,1,8.05-2.69l16,8a6,6,0,0,1-5.36,10.74l-16-8A6,6,0,0,1,18.63,93.32Zm192,13.36a6,6,0,0,1,2.69-8.05l16-8a6,6,0,1,1,5.36,10.74l-16,8a6,6,0,0,1-8.05-2.69Zm-48-53.36,8-16a6,6,0,0,1,10.74,5.37l-8,16a6,6,0,1,1-10.74-5.36Z"/></svg>Today</button>
+    <button data-tab="history"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M208,34H182V24a6,6,0,0,0-12,0V34H86V24a6,6,0,0,0-12,0V34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H74V56a6,6,0,0,0,12,0V46h84V56a6,6,0,0,0,12,0V46h26a2,2,0,0,1,2,2V82H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V94H210V208A2,2,0,0,1,208,210Z"/></svg>History</button>
+    <button data-tab="library"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M104,34H56A14,14,0,0,0,42,48V208a14,14,0,0,0,14,14h48a14,14,0,0,0,14-14V48A14,14,0,0,0,104,34ZM54,78h52V178H54Zm2-32h48a2,2,0,0,1,2,2V66H54V48A2,2,0,0,1,56,46Zm48,164H56a2,2,0,0,1-2-2V190h52v18A2,2,0,0,1,104,210Zm125.7-15L196.51,37.16a14,14,0,0,0-16.63-10.85L133.07,36.37A14.09,14.09,0,0,0,122.3,53l33.19,157.81a14,14,0,0,0,6.1,8.9,13.85,13.85,0,0,0,7.57,2.26,13.55,13.55,0,0,0,3-.32l46.81-10.05A14.09,14.09,0,0,0,229.7,195Zm-82.81-83.32,50.73-10.9,14.12,67.16L161,178.81Zm-6.63-31.56L191,69.19,195.15,89l-50.73,10.9Zm-4.66-32,46.8-10.05a2.18,2.18,0,0,1,.42,0,1.89,1.89,0,0,1,1.05.32,2,2,0,0,1,.89,1.31l3.75,17.82L137.79,68.34l-3.74-17.78A2.07,2.07,0,0,1,135.6,48.1Zm80.81,151.8L169.6,210a1.92,1.92,0,0,1-1.47-.27,2,2,0,0,1-.89-1.31l-3.75-17.82,50.72-10.9L218,197.43A2.07,2.07,0,0,1,216.41,199.9Z"/></svg>Library</button>
+    <button data-tab="settings"><svg viewBox="0 0 256 256" aria-hidden="true"><path d="M128,82a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162Zm108-54.4a6,6,0,0,0-2.92-4L202.64,86.22l-.42-.71L202.1,51.2A6,6,0,0,0,200,46.64a110.12,110.12,0,0,0-36.07-20.31,6,6,0,0,0-4.84.45L128.46,43.86h-1L96.91,26.76a6,6,0,0,0-4.86-.44A109.92,109.92,0,0,0,56,46.68a6,6,0,0,0-2.12,4.55l-.16,34.34c-.14.23-.28.47-.41.71L22.91,103.57A6,6,0,0,0,20,107.62a104.81,104.81,0,0,0,0,40.78,6,6,0,0,0,2.92,4l30.42,17.33.42.71.12,34.31A6,6,0,0,0,56,209.36a110.12,110.12,0,0,0,36.07,20.31,6,6,0,0,0,4.84-.45l30.61-17.08h1l30.56,17.1A6.09,6.09,0,0,0,162,230a5.83,5.83,0,0,0,1.93-.32,109.92,109.92,0,0,0,36-20.36,6,6,0,0,0,2.12-4.55l.16-34.34c.14-.23.28-.47.41-.71l30.42-17.29a6,6,0,0,0,2.92-4.05A104.81,104.81,0,0,0,236,107.6Zm-11.25,35.79L195.32,160.1a6.07,6.07,0,0,0-2.28,2.3c-.59,1-1.21,2.11-1.86,3.14a6,6,0,0,0-.91,3.16l-.16,33.21a98.15,98.15,0,0,1-27.52,15.53L133,200.88a6,6,0,0,0-2.93-.77h-.14c-1.24,0-2.5,0-3.74,0a6,6,0,0,0-3.07.76L93.45,217.43a98,98,0,0,1-27.56-15.49l-.12-33.17a6,6,0,0,0-.91-3.16c-.64-1-1.27-2.08-1.86-3.14a6,6,0,0,0-2.27-2.3L31.3,143.4a93,93,0,0,1,0-30.79L60.68,95.9A6.07,6.07,0,0,0,63,93.6c.59-1,1.21-2.11,1.86-3.14a6,6,0,0,0,.91-3.16l.16-33.21A98.15,98.15,0,0,1,93.41,38.56L123,55.12a5.81,5.81,0,0,0,3.07.76c1.24,0,2.5,0,3.74,0a6,6,0,0,0,3.07-.76l29.65-16.56a98,98,0,0,1,27.56,15.49l.12,33.17a6,6,0,0,0,.91,3.16c.64,1,1.27,2.08,1.86,3.14a6,6,0,0,0,2.27,2.3L224.7,112.6A93,93,0,0,1,224.73,143.39Z"/></svg>Settings</button>
+  </div></nav>
+  <div class="toast" id="toast" role="status"></div>
+</div>
+
+<script>
+/*@EXERCISES@*/
+/*@VIDEOS@*/
+const EXMAP = Object.fromEntries(EX.map(e=>[e.id,e]));
+for(const e of EX){ const v=(typeof VIDEOS!=="undefined")&&VIDEOS[e.id]; if(v&&v.videoId){ e.video={id:v.videoId,title:v.title||e.name,channel:v.channel||""}; } }
+// Inline players are blocked inside the claude.ai artifact viewer; they work when this same file is hosted elsewhere (e.g. GitHub Pages).
+const CAN_EMBED = !(window.claude && window.claude.use) && !/claude\.ai$|claudeusercontent|anthropic/.test(location.hostname) && location.protocol!=="about:";
+const CORE = ["breath_slow","catcamel","birddog","sideplank"];
+const UNLOCK_ORDER = ["chin_tuck","tspine_ext","balance","doorway","sitrise","ytw","hang","posture_wall","hip9090","wall_slide","hipflexor","calfraise","glute_bridge","armswing","bdj1","facepull","zhan","splitsquat","wrist","tib","bdj2","wgs","shoulderCARs","squat_hold","owl","hollow","bdj_full","ankleCARs","band_pull","breath_sigh","yoga_flow","gmb_daily","pogo"];
+const POSTURE = ["chin_tuck","tspine_ext","doorway","ytw","posture_wall","wall_slide","glute_bridge","facepull","band_pull"];
+const SLOT_ORDER = {
+  5:["breath","spine","core","core"],
+  10:["breath","spine","core","core","posture","shoulders","hips","balance","floor","legs","mind"],
+  15:["breath","spine","core","core","posture","shoulders","wrists","hips","legs","balance","floor","mind"]
+};
+const SLOT_NAMES = {breath:"Breath",spine:"Spine",balance:"Balance",floor:"Floor",shoulders:"Shoulders",posture:"Posture",hips:"Hips",legs:"Legs & feet",core:"Trunk",wrists:"Wrists",mind:"Standing & qigong",video:"Follow-along"};
+const PACE = {slow:{sessions:7,days:7},normal:{sessions:4,days:5},fast:{sessions:2,days:2}};
+const ANCHORS = [
+ {id:"strength",name:"Strength session",target:2,why:"30–60 min/week of lifting is where the mortality curve bends (Momma 2022). Two sessions covers it, and it is also how you bank muscle and bone."},
+ {id:"hard",name:"Hard cardio (intervals)",target:1,why:"Fitness is one of the strongest predictors of lifespan. Intervals raise VO2max more than steady work for the same time (Helgerud 2007)."},
+ {id:"easy",name:"Easy movement 30+ min",target:3,why:"Walks, cycling, a sport you practise. Toward the 150 min/week floor; daily steps show a dose-response with mortality."},
+ {id:"friend",name:"Time with a friend",target:1,why:"Social connection: about 50% higher survival odds in the big meta-analysis (Holt-Lunstad 2010). Observational, but the largest signal of anything here."},
+ {id:"outdoors",name:"Hours outdoors",target:2,why:"120+ min/week in nature goes with better self-rated health (White 2019). Train outside and this fills itself."}
+];
+const BENCH = [
+ {id:"ols_closed",name:"One-leg stand, eyes closed",unit:"s",hint:"Worst side, best of 2 tries, max 60"},
+ {id:"hang_time",name:"Dead hang",unit:"s",hint:"One continuous hang"},
+ {id:"srt",name:"Sit–rise score",unit:"/10",hint:"5 down + 5 up, −1 per support, −0.5 per wobble"},
+ {id:"rhr",name:"Morning resting heart rate",unit:"bpm",hint:"Lying still, before getting up"}
+];
+
+/* ===================== State & storage ===================== */
+const todayStr = (d=new Date()) => { const z=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+z(d.getMonth()+1)+"-"+z(d.getDate()); };
+const daysBetween = (a,b) => Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/864e5);
+const isoWeek = (d=new Date()) => { const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y=t.getUTCFullYear(); const w=Math.ceil(((t-Date.UTC(y,0,1))/864e5+1)/7); return y+"-W"+String(w).padStart(2,"0"); };
+
+const defaultState = () => ({v:1,created:todayStr(),
+  settings:{equip:{bar:true,band:true,floor:true,step:false},travel:false,pace:"normal",sound:true,pauseUnlocks:false,postureFocus:false,tier:10,postureTier:5,theme:"dark"},
+  unlocked:[...CORE],offered:null,snoozed:{},lastUnlock:{date:todayStr(),sessionsAt:0},
+  sessions:0,postureSessions:0,lastDone:{},counts:{},benchmarks:[],peek:false});
+const defaultLog = () => ({days:{},weeks:{},posture:{}});
+
+let state = defaultState();
+let logs = {};          // year -> {days, weeks}
+let db=null, uid=null, online=false;
+let saving = Promise.resolve();
+
+const LS = {
+  get(k){ try{ const v=localStorage.getItem("mr:"+k); return v?JSON.parse(v):null; }catch(e){ return null; } },
+  set(k,v){ try{ localStorage.setItem("mr:"+k,JSON.stringify(v)); }catch(e){} }
+};
+function mergeState(remote){ remote=clone(remote); const d=defaultState(); const ds=d.settings, de=d.settings.equip; const out=Object.assign(d,remote||{}); out.settings=Object.assign({},ds,(remote&&remote.settings)||{}); out.settings.equip=Object.assign({},de,(remote&&remote.settings&&remote.settings.equip)||{}); return out; }
+function logFor(dateStr){ const y=dateStr.slice(0,4); if(!logs[y]) logs[y]=defaultLog(); if(!logs[y].posture) logs[y].posture={}; return logs[y]; }
+
+function persist(key, val){
+  LS.set(key,val);
+  if(db && uid){
+    saving = saving.then(()=> db.doc("data/users/"+uid+"/"+key).set(val)).catch(e=>{ console.warn("db write failed",e); setSync(false,"saved on this device only"); });
+  }
+  scheduleGist();
+}
+function scheduleGist(){ if(gistOn()){ clearTimeout(gist.timer); gist.timer=setTimeout(()=>{ gist.timer=null; gistSync(true); },1500); } }
+const saveState = () => { state.updated=Date.now(); persist("state", state); };
+const saveLog = (dateStr) => { const y=dateStr.slice(0,4); persist("log-"+y, logs[y]); };
+
+function setSync(on,label){ const el=document.getElementById("sync"); el.classList.toggle("on",!!on); el.querySelector("span").textContent=label||(on?"synced":"this device"); online=!!on; }
+
+function loadLocal(){
+  const s=LS.get("state"); if(s) state=mergeState(s);
+  const y=new Date().getFullYear();
+  for(const yy of [y-1,y]){ const l=LS.get("log-"+yy); if(l) logs[yy]=l; }
+}
+
+async function connect(){
+  if(!window.claude || !window.claude.use) return;
+  try{
+    const [d,u] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if(!d || !u) return;
+    uid = await u.id(); if(!uid) return;
+    db = d;
+    const y=new Date().getFullYear();
+    const refs = {state:db.doc("data/users/"+uid+"/state")};
+    for(const yy of [y-1,y]) refs["log-"+yy]=db.doc("data/users/"+uid+"/log-"+yy);
+    const snaps = await Promise.all(Object.values(refs).map(r=>r.get()));
+    const keys = Object.keys(refs);
+    let remoteState=null;
+    snaps.forEach((s,i)=>{ if(s.exists){ const k=keys[i]; if(k==="state") remoteState=clone(s.data()); else logs[k.slice(4)]=mergeLog(logs[k.slice(4)], clone(s.data())); }});
+    if(remoteState){
+      // remote wins when it is further along (more sessions) or equal; local wins otherwise, then gets pushed up
+      if((remoteState.sessions||0) >= (state.sessions||0)) state=mergeState(remoteState);
+    }
+    saveState(); for(const yy of Object.keys(logs)) persist("log-"+yy, logs[yy]);
+    setSync(true,"synced");
+    // follow changes made from another device
+    refs.state.onSnapshot(s=>{ if(!s.exists||s.metadata.hasPendingWrites) return; const r=clone(s.data()); if(JSON.stringify(r)!==JSON.stringify(state)){ if((r.sessions||0)+(r.postureSessions||0) < (state.sessions||0)+(state.postureSessions||0)) return; state=mergeState(r); LS.set("state",state); render(); } }, e=>console.warn(e));
+    refs["log-"+y].onSnapshot(s=>{ if(!s.exists||s.metadata.hasPendingWrites) return; const r=clone(s.data()); const merged=mergeLog(logs[y], r); if(JSON.stringify(merged)!==JSON.stringify(logs[y])){ logs[y]=merged; LS.set("log-"+y,merged); render(); } }, e=>console.warn(e));
+    render();
+  }catch(e){ console.warn("db unavailable",e); }
+}
+const clone = x => x==null ? x : JSON.parse(JSON.stringify(x)); // db snapshots are frozen; always work on a copy
+// per date, the entry with more exercises done wins; on a tie, b wins
+const pickDays = (a={},b={}) => { const o=Object.assign({},a); for(const k in b){ const x=o[k], y=b[k]; o[k] = (x&&y&&(x.done||[]).length>(y.done||[]).length) ? x : y; } return o; };
+function mergeLog(a,b){ a=a||defaultLog(); b=b||defaultLog(); return {days:pickDays(a.days,b.days),weeks:Object.assign({},a.weeks,b.weeks),posture:pickDays(a.posture,b.posture)}; }
+
+/* ---- Personal profile: your own texts layered over the generic library.
+   It lives on your devices (and, encrypted, in the sync gist), never in the app's code, so the code can stay public.
+   Shape: {v, updated, postureNote, notes:{exerciseId:text}, anchors:{anchorId:why}, exercises:{exerciseId:{why,protects,steps,pitfalls,evidence}}} ---- */
+const PROFILE_FIELDS = ["why","protects","steps","pitfalls","evidence"];
+const defaultProfile = () => ({v:1,updated:0,postureNote:"",notes:{},anchors:{},exercises:{}});
+const EX_BASE = Object.fromEntries(EX.map(e=>[e.id,Object.fromEntries(PROFILE_FIELDS.map(k=>[k,e[k]]))]));
+const ANCHOR_BASE = Object.fromEntries(ANCHORS.map(a=>[a.id,a.why]));
+function cleanProfile(p){   // keep only well-formed fields, so a typo in a hand-edited file cannot break rendering
+  if(!p || typeof p!=="object") throw new Error("not a profile");
+  const str=v=>typeof v==="string", strs=v=>Array.isArray(v)&&v.every(str), out=defaultProfile();
+  out.updated=+p.updated||0;
+  if(str(p.postureNote)) out.postureNote=p.postureNote;
+  for(const [id,t] of Object.entries(p.notes||{})) if(EX_BASE[id]&&str(t)&&t.trim()) out.notes[id]=t;
+  for(const [id,t] of Object.entries(p.anchors||{})) if(id in ANCHOR_BASE&&str(t)) out.anchors[id]=t;
+  for(const [id,o] of Object.entries(p.exercises||{})){
+    if(!EX_BASE[id]||!o||typeof o!=="object") continue;
+    const e={}; for(const k of PROFILE_FIELDS){ const v=o[k]; if((k==="why"||k==="evidence")?str(v):strs(v)) e[k]=v; }
+    if(Object.keys(e).length) out.exercises[id]=e;
+  }
+  return out;
+}
+let profile = (()=>{ try{ return cleanProfile(LS.get("profile")||{}); }catch(e){ return defaultProfile(); } })();
+function applyProfile(){
+  for(const e of EX){ const o=profile.exercises[e.id]||{}; for(const k of PROFILE_FIELDS) e[k] = o[k]!=null ? o[k] : EX_BASE[e.id][k]; }
+  for(const a of ANCHORS) a.why = profile.anchors[a.id] || ANCHOR_BASE[a.id];
+}
+function saveProfile(){ profile.updated=Date.now(); LS.set("profile",profile); applyProfile(); scheduleGist(); }
+const profileCount = () => ({ex:Object.keys(profile.exercises).length, notes:Object.keys(profile.notes).length});
+
+/* ---- End-to-end encryption for the gist: AES-GCM with a key derived from your passphrase (PBKDF2-SHA256).
+   Encrypted on the device before upload, so GitHub only ever stores ciphertext. ---- */
+const TE=new TextEncoder(), TD=new TextDecoder();
+const b64 = u8 => { let s=""; for(let i=0;i<u8.length;i+=0x8000) s+=String.fromCharCode.apply(null,u8.subarray(i,i+0x8000)); return btoa(s); };
+const unb64 = s => Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+let gistKeys = {};   // salt -> CryptoKey, derived once per session (deriving is deliberately slow)
+async function keyFor(salt){
+  if(!gistKeys[salt]){
+    const base=await crypto.subtle.importKey("raw",TE.encode(gist.cfg.pass),"PBKDF2",false,["deriveKey"]);
+    gistKeys[salt]=await crypto.subtle.deriveKey({name:"PBKDF2",salt:unb64(salt),iterations:310000,hash:"SHA-256"},base,{name:"AES-GCM",length:256},false,["encrypt","decrypt"]);
+  }
+  return gistKeys[salt];
+}
+async function seal(text){
+  if(!gist.cfg.salt){ gist.cfg.salt=b64(crypto.getRandomValues(new Uint8Array(16))); LS.set("gist",gist.cfg); }
+  const iv=crypto.getRandomValues(new Uint8Array(12));
+  const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},await keyFor(gist.cfg.salt),TE.encode(text));
+  return JSON.stringify({enc:"AES-GCM/PBKDF2-SHA256",salt:gist.cfg.salt,iv:b64(iv),ct:b64(new Uint8Array(ct))});
+}
+async function unseal(o){
+  let pt; try{ pt=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(o.iv)},await keyFor(o.salt),unb64(o.ct)); }catch(e){ throw new Error("passphrase"); }
+  if(gist.cfg.salt!==o.salt){ gist.cfg.salt=o.salt; LS.set("gist",gist.cfg); }   // another device created the gist: reuse its salt
+  return JSON.parse(TD.decode(pt));
+}
+
+/* ---- Sync through a private GitHub gist (standalone app only; claude.ai uses its own database above) ---- */
+const GIST_FILE = "morning-reserve.json";
+const gist = {cfg:LS.get("gist"), timer:null, busy:Promise.resolve()};   // cfg: {token, pass, id, salt, base}; base = state.updated at the last sync
+const gistOn = () => CAN_EMBED && !!(gist.cfg && gist.cfg.token && gist.cfg.pass && gist.cfg.id);   // CAN_EMBED doubles as "not inside claude.ai"
+const GH = (path,opt={}) => fetch("https://api.github.com"+path, Object.assign({cache:"no-store"},opt,{headers:{Authorization:"Bearer "+gist.cfg.token,Accept:"application/vnd.github+json","Content-Type":"application/json"}}))
+  .then(r=>{ if(!r.ok) throw new Error("GitHub "+r.status); return r.json(); });
+async function gistRead(){
+  const g=await GH("/gists/"+gist.cfg.id); const f=g.files&&g.files[GIST_FILE]; if(!f) return null;
+  const txt = f.truncated ? await fetch(f.raw_url,{cache:"no-store"}).then(r=>r.text()) : f.content;
+  let o; try{ o=JSON.parse(txt); }catch(e){ return null; }
+  return o && o.ct ? unseal(o) : o;   // a plain copy (from before encryption) is read once, then replaced by an encrypted one
+}
+const gistWrite = async text => GH("/gists/"+gist.cfg.id,{method:"PATCH",body:JSON.stringify({files:{[GIST_FILE]:{content:await seal(text)}}})});
+const snapshot = () => JSON.stringify({state,logs,profile});
+function adoptState(r){   // does the gist's state replace ours?
+  const base=gist.cfg.base||0, rs=r.updated||0, ls=state.updated||0;
+  if(rs<=base) return false;            // gist unchanged since our last sync
+  if(ls<=base) return true;             // only the gist changed
+  const prog=s=>(s.sessions||0)+(s.postureSessions||0);   // both changed: further along wins, then newer
+  return prog(r)!==prog(state) ? prog(r)>prog(state) : rs>ls;
+}
+// pull, merge, push back whatever the gist lacks. preferLocal decides same-day ties: true after a local change, false when pulling
+function gistSync(preferLocal){
+  if(!gistOn()) return Promise.resolve();
+  return gist.busy = gist.busy.then(async ()=>{
+    try{
+      const remote=await gistRead()||{}, rlogs=remote.logs||{};
+      const before=snapshot();
+      for(const y of new Set([...Object.keys(logs),...Object.keys(rlogs)])) logs[y] = preferLocal ? mergeLog(rlogs[y],logs[y]) : mergeLog(logs[y],rlogs[y]);
+      if(remote.state && adoptState(remote.state)) state=mergeState(remote.state);
+      if(remote.profile && (remote.profile.updated||0) > profile.updated){ try{ profile=cleanProfile(remote.profile); applyProfile(); }catch(e){} }   // the profile: newer edit wins
+      const mine=snapshot();
+      if(mine!==before){ LS.set("state",state); LS.set("profile",profile); for(const y of Object.keys(logs)) LS.set("log-"+y,logs[y]); if(!run) render(); }
+      if(mine!==JSON.stringify({state:remote.state,logs:remote.logs,profile:remote.profile})) await gistWrite(mine);
+      gist.cfg.base=state.updated||0; LS.set("gist",gist.cfg);
+      setSync(true,"synced");
+    }catch(e){ console.warn("gist sync failed",e); setSync(false, e.message==="passphrase" ? "wrong passphrase" : "offline · saved here"); }
+  });
+}
+async function gistConnect(token,pass){
+  gist.cfg={token,pass}; gistKeys={};
+  try{
+    const found=(await GH("/gists?per_page=100")).find(g=>g.files&&g.files[GIST_FILE]);
+    if(found){ gist.cfg.id=found.id; await gistRead(); }   // throws on a wrong passphrase before anything is written
+    else gist.cfg.id=(await GH("/gists",{method:"POST",body:JSON.stringify({description:"@APP_NAME@ data (encrypted)",public:false,files:{[GIST_FILE]:{content:await seal(snapshot())}}})})).id;
+    gist.cfg.base=0; LS.set("gist",gist.cfg);
+    await gistSync(false);
+    toast(found?"Connected; your data is synced":"Connected; created an encrypted gist");
+  }catch(e){ gist.cfg=null; toast(e.message==="passphrase"?"That passphrase does not open your synced data":/401|403/.test(e.message)?"GitHub refused that token":"Could not reach GitHub"); }
+  render();
+}
+function gistReplace(){   // after an import: overwrite the gist instead of merging into it
+  if(!gistOn()) return;
+  gist.busy = gist.busy.then(()=>gistWrite(snapshot())).then(()=>{ gist.cfg.base=state.updated||0; LS.set("gist",gist.cfg); }).catch(e=>console.warn(e));
+}
+document.addEventListener("visibilitychange",()=>{
+  if(!gistOn()) return;
+  if(document.visibilityState==="hidden"){ if(gist.timer){ clearTimeout(gist.timer); gist.timer=null; gistSync(true); } }
+  else gistSync(false);
+});
+
+/* ===================== Planning ===================== */
+function equipOK(ex){
+  const eq=state.settings.equip, travel=state.settings.travel;
+  return ex.equip.every(k => k==="floor" ? eq.floor : (!travel && eq[k]));
+}
+function available(){ return state.unlocked.filter(id=>EXMAP[id] && equipOK(EXMAP[id])); }
+function secsFor(ex,tier){ return typeof ex.secs==="object" ? ex.secs[tier] : ex.secs; }
+function lastDoneKey(id){ return state.lastDone[id] || "0000-00-00"; }
+
+function buildPlan(tier, dateStr){
+  const avail = available();
+  const budget = tier*60;
+  const plan=[]; let total=0;
+  const pick = slot => {
+    const c = avail.filter(id=>EXMAP[id].slot===slot && !plan.includes(id));
+    if(!c.length) return null;
+    c.sort((a,b)=> lastDoneKey(a).localeCompare(lastDoneKey(b)) || UNLOCK_ORDER.indexOf(a)-UNLOCK_ORDER.indexOf(b));
+    return c[0];
+  };
+  // follow-along day: every 4th session at 10 or 15 min, once a video is unlocked
+  const videos = avail.filter(id=>EXMAP[id].slot==="video");
+  if(tier>=10 && videos.length && state.sessions>0 && state.sessions%4===3){
+    videos.sort((a,b)=>lastDoneKey(a).localeCompare(lastDoneKey(b)));
+    const b=pick("breath"); if(b){plan.push(b);}
+    const c1=pick("core"); if(c1) plan.push(c1);
+    plan.push(videos[0]);
+    if(tier===15){ const bal=pick("balance"); if(bal) plan.push(bal); const fl=pick("floor"); if(fl) plan.push(fl); }
+    return plan;
+  }
+  const add = slot => { const id=pick(slot); if(!id) return false; const s=secsFor(EXMAP[id],tier); if(total+s > budget+30) return false; plan.push(id); total+=s; return true; };
+  const focus = state.settings.postureFocus;
+  // posture focus: a posture item is guaranteed in 10 and 15 (right after the floor), and the 5-minute version gets one too
+  const order = focus ? (tier===5 ? [...SLOT_ORDER[5],"posture"] : ["breath","spine","core","core","posture",...SLOT_ORDER[tier].slice(5)]) : SLOT_ORDER[tier];
+  for(const slot of order) add(slot);
+  // second pass: fill remaining time with a second exercise from the big slots
+  const extra = tier===15 ? (focus?["posture","hips","legs","shoulders","mind","spine","core"]:["hips","legs","posture","shoulders","mind","spine","core"]) : tier===10 ? (focus?["posture","hips"]:["hips","legs"]) : [];
+  for(const slot of extra){ if(total >= budget-45) break; add(slot); }
+  // keep the balance and floor screens last, standing work at the very end
+  const tail = plan.filter(id=>["balance","floor","mind"].includes(EXMAP[id].slot));
+  const head = plan.filter(id=>!tail.includes(id));
+  tail.sort((a,b)=>["balance","floor","mind"].indexOf(EXMAP[a].slot)-["balance","floor","mind"].indexOf(EXMAP[b].slot));
+  return [...head,...tail];
+}
+function planSecs(plan,tier){ return plan.reduce((t,id)=>t+secsFor(EXMAP[id],tier),0); }
+
+/* Posture programme: a separate 5/10-minute routine built only from the posture set, independent of unlocks. */
+function buildPosturePlan(tier){
+  const ok = id => EXMAP[id] && equipOK(EXMAP[id]);
+  let plan = ["chin_tuck","tspine_ext","doorway"];
+  if(tier===10){
+    const pulls=["facepull","band_pull","wall_slide"].filter(ok).sort((a,b)=>lastDoneKey(a).localeCompare(lastDoneKey(b)));
+    plan.push("ytw", pulls[0], "glute_bridge", "wall_slide");
+  }
+  plan.push("posture_wall");
+  return [...new Set(plan.filter(id=>id&&ok(id)))];
+}
+function postureEntry(create){
+  const d=todayStr(); const L=logFor(d);
+  if(!L.posture[d] && create){ L.posture[d]={tier:state.settings.postureTier||5,plan:buildPosturePlan(state.settings.postureTier||5),done:[],skipped:[],secs:0}; saveLog(d); }
+  return L.posture[d];
+}
+function replanPosture(tier){
+  const d=todayStr(); const L=logFor(d); const e=L.posture[d]||{done:[],skipped:[],secs:0};
+  e.tier=tier; e.plan=buildPosturePlan(tier); L.posture[d]=e; state.settings.postureTier=tier; saveState(); saveLog(d);
+}
+const curEntry = () => (run&&run.kind==="posture") ? postureEntry(true) : todayEntry(true);
+function todayEntry(create){
+  const d=todayStr(); const L=logFor(d);
+  if(!L.days[d] && create){ L.days[d]={tier:state.settings.tier,plan:buildPlan(state.settings.tier,d),done:[],skipped:[],secs:0}; saveLog(d); }
+  return L.days[d];
+}
+function replan(tier){
+  const d=todayStr(); const L=logFor(d); const e=L.days[d]||{done:[],skipped:[],secs:0};
+  e.tier=tier; e.plan=buildPlan(tier,d); L.days[d]=e; state.settings.tier=tier; saveState(); saveLog(d);
+}
+function swapItem(idx){
+  const e=todayEntry(true); const cur=EXMAP[e.plan[idx]];
+  const c=available().filter(id=>EXMAP[id].slot===cur.slot && !e.plan.includes(id));
+  if(!c.length){ toast("Nothing else unlocked for "+SLOT_NAMES[cur.slot].toLowerCase()+" yet"); return; }
+  c.sort((a,b)=>lastDoneKey(a).localeCompare(lastDoneKey(b)));
+  e.plan[idx]=c[0]; saveLog(todayStr()); render();
+}
+
+/* ===================== Unlocks ===================== */
+function nextCandidate(){
+  const t=todayStr();
+  for(const id of UNLOCK_ORDER){
+    if(state.unlocked.includes(id)) continue;
+    if(state.snoozed[id] && state.snoozed[id] > t) continue;
+    if(!equipOK(EXMAP[id])) continue;
+    return id;
+  }
+  return null;
+}
+function maybeOffer(){
+  if(state.settings.pauseUnlocks || state.offered) return;
+  const p=PACE[state.settings.pace]||PACE.normal;
+  const sinceSessions = state.sessions - (state.lastUnlock.sessionsAt||0);
+  const sinceDays = daysBetween(state.lastUnlock.date||state.created, todayStr());
+  if(sinceSessions>=p.sessions && sinceDays>=p.days){
+    const id=nextCandidate(); if(id){ state.offered={id,date:todayStr()}; saveState(); }
+  }
+}
+function acceptOffer(){
+  const id=state.offered.id; state.unlocked.push(id); state.offered=null;
+  state.lastUnlock={date:todayStr(),sessionsAt:state.sessions}; saveState();
+  // add it to today's plan if it fits the tier and nothing is done yet
+  const e=todayEntry(true); if(!e.done.length){ e.plan=buildPlan(e.tier,todayStr()); if(!e.plan.includes(id) && EXMAP[id].slot!=="video"){ e.plan.push(id);} saveLog(todayStr()); }
+  toast(EXMAP[id].name+" added to the rotation"); render();
+}
+function snoozeOffer(){
+  const id=state.offered.id; const d=new Date(); d.setDate(d.getDate()+7);
+  state.snoozed[id]=todayStr(d); state.offered=null; state.lastUnlock={date:todayStr(),sessionsAt:state.sessions}; saveState(); render();
+}
+
+/* ===================== Session runner ===================== */
+let run=null; // {i, left, timer, paused, done:[], skipped:[], startedAt}
+let audio=null;
+function beep(n=1){ if(!state.settings.sound) return; try{ audio=audio||new (window.AudioContext||window.webkitAudioContext)(); const t=audio.currentTime; for(let k=0;k<n;k++){ const o=audio.createOscillator(), g=audio.createGain(); o.frequency.value=660; o.connect(g); g.connect(audio.destination); g.gain.setValueAtTime(0.0001,t+k*0.22); g.gain.exponentialRampToValueAtTime(0.2,t+k*0.22+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+k*0.22+0.18); o.start(t+k*0.22); o.stop(t+k*0.22+0.2);} }catch(e){} }
+let wakeLock=null;
+async function keepAwake(){ try{ if(navigator.wakeLock) wakeLock=await navigator.wakeLock.request("screen"); }catch(e){} }
+function releaseWake(){ try{ wakeLock&&wakeLock.release(); }catch(e){} wakeLock=null; }
+
+function startSession(kind="main",manual=false){
+  const e= kind==="posture" ? postureEntry(true) : todayEntry(true);
+  if(!e.plan.length){ toast("Nothing in the plan for this equipment"); return; }
+  if(!manual) beep(1);
+  keepAwake();
+  run={kind,manual,i:0,left:secsFor(EXMAP[e.plan[0]],e.tier),timer:null,paused:false,done:[],skipped:[],startedAt:Date.now()};
+  if(!manual) tick();
+  render();
+}
+function tick(){
+  clearInterval(run.timer);
+  run.timer=setInterval(()=>{
+    if(run.paused) return;
+    run.left-=1;
+    const el=document.getElementById("clock"); const bar=document.getElementById("bar");
+    if(el) el.textContent=fmt(run.left);
+    if(bar){ const e=curEntry(); const tot=secsFor(EXMAP[e.plan[run.i]],e.tier); bar.style.width=(100*(tot-run.left)/tot)+"%"; }
+    if(run.left<=0){ beep(2); advance(true); }
+  },1000);
+}
+function advance(done){
+  const e=curEntry(); const id=e.plan[run.i];
+  (done?run.done:run.skipped).push(id);
+  run.i+=1;
+  if(run.i>=e.plan.length){ finishSession(); return; }
+  run.left=secsFor(EXMAP[e.plan[run.i]],e.tier); run.more=false; render();
+}
+function goBack(){
+  if(!run || run.i===0) return;
+  const e=curEntry(); run.i-=1; const id=e.plan[run.i];
+  run.done=run.done.filter(x=>x!==id); run.skipped=run.skipped.filter(x=>x!==id);
+  run.left=secsFor(EXMAP[id],e.tier); run.more=false; render();
+}
+function finishSession(){
+  clearInterval(run.timer); releaseWake();
+  const e=curEntry(); const d=todayStr(); const kind=run.kind;
+  e.done=[...new Set([...e.done,...run.done])]; e.skipped=run.skipped.filter(id=>!e.done.includes(id));
+  e.secs=(e.secs||0)+Math.round((Date.now()-run.startedAt)/1000);
+  commitDay(e,d,kind);
+  run={kind,finished:true,done:e.done.length,secs:e.secs}; render();
+}
+function commitDay(e,d,kind="main"){
+  const first = !e.counted;
+  for(const id of e.done){ state.lastDone[id]=d; }
+  if(first && e.done.length){ e.counted=true; if(kind==="posture") state.postureSessions=(state.postureSessions||0)+1; else state.sessions+=1; for(const id of e.done) state.counts[id]=(state.counts[id]||0)+1; }
+  saveLog(d); saveState(); if(kind==="main") maybeOffer(); saveState();
+}
+function quickLog(kind="main"){
+  const e= kind==="posture" ? postureEntry(true) : todayEntry(true); const d=todayStr();
+  e.done=[...e.plan]; e.skipped=[]; e.secs=planSecs(e.plan,e.tier); commitDay(e,d,kind); toast("Logged"); render();
+}
+function cancelSession(){ clearInterval(run.timer); releaseWake(); run=null; render(); }
+function setFeel(v,kind="main"){ const e= kind==="posture" ? postureEntry(true) : todayEntry(true); e.feel=v; saveLog(todayStr()); if(run&&run.finished){ run=null; toast("Saved"); } render(); }
+const fmt = s => { s=Math.max(0,s); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
+
+/* ===================== Views ===================== */
+let tab="today";
+const $=sel=>document.querySelector(sel);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1800); }
+function gradeChip(g){ return `<span class="chip ${g}">${g==="strong"?"solid evidence":g==="moderate"?"moderate evidence":"thin evidence"}</span>`; }
+
+// dark by default; light and system are opt-in. The browser bar colour follows the page.
+function applyTheme(){
+  const t=state.settings.theme||"dark"; document.documentElement.dataset.theme=t;
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+}
+function enter(){ const v=$("#view"); v.classList.add("enter"); clearTimeout(enter.t); enter.t=setTimeout(()=>v.classList.remove("enter"),700); }
+function render(){
+  applyTheme();
+  const d=new Date();
+  $("#dateline").textContent=d.toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
+  document.querySelectorAll("nav.tabs button").forEach(b=>b.setAttribute("aria-current",b.dataset.tab===tab?"page":"false"));
+  const v=$("#view");
+  try{
+    if(run && !run.finished) v.innerHTML=viewRunner();
+    else if(run && run.finished) v.innerHTML=viewFinished();
+    else v.innerHTML={today:viewToday,history:viewHistory,library:viewLibrary,settings:viewSettings}[tab]();
+  }catch(err){
+    console.error(err);
+    v.innerHTML=`<section class="card stack"><span class="eyebrow">Something went wrong</span><p class="small">${esc(err.message||String(err))}</p><p class="small muted">Your log is kept. Reloading usually fixes it; if not, Settings → Copy export keeps a copy you can send.</p><div class="row"><button class="btn primary" data-act="reload">Reload</button><button class="btn" data-goto="settings">Settings</button></div></section>`;
+  }
+  bind();
+}
+
+function viewToday(){
+  const e=todayEntry(true);
+  maybeOffer();
+  const tier=e.tier; const plan=e.plan; const doneToday=e.done.length>0;
+  const week=state.sessions<4 ? "Week 1: the floor" : "";
+  let html="";
+  if(state.sessions===0 && !doneToday){
+    html+=`<section class="card flat stack"><span class="eyebrow">How this works</span>
+      <p class="small muted">Four things, five minutes, once you are up and moving. Every few sessions one new exercise is offered and you decide. The routine rotates on its own; the shorter version always beats skipping.</p></section>`;
+  }
+  if(state.offered){
+    const ex=EXMAP[state.offered.id];
+    html+=`<section class="card amber stack">
+      <div class="row between"><span class="chip new">New this week</span>${gradeChip(ex.grade)}</div>
+      <h2>${esc(ex.name)}</h2>
+      <p class="small muted">${SLOT_NAMES[ex.slot]} · ${fmt(secsFor(ex,15))}${ex.equip.length?" · needs "+ex.equip.join(", "):""}</p>
+      <p>${esc(ex.why)}</p>
+      <details class="more"><summary>Exercise description</summary>${exGuide(ex,"offer")}</details>
+      <div class="row actions"><button class="btn primary" data-act="accept">Add to rotation</button><button class="btn" data-act="snooze">Not yet</button></div>
+    </section>`;
+  }
+  html+=`<section class="card stack">
+    <div class="row between">
+      <div><span class="eyebrow">${week||"Today"}</span><h2>${doneToday?"Done for today":"Your routine"}</h2></div>
+      <div class="seg" role="group" aria-label="Length">${[5,10,15].map(t=>`<button data-tier="${t}" aria-pressed="${t===tier}">${t}′</button>`).join("")}</div>
+    </div>
+    <div class="plan">${plan.map((id,i)=>{ const ex=EXMAP[id]; const dn=e.done.includes(id); return `<div class="item ${dn?"done":""}">
+        <span class="idx">${String(i+1).padStart(2,"0")}</span>
+        <div><div class="name">${esc(ex.name)}</div><div class="meta">${SLOT_NAMES[ex.slot]}${ex.equip.includes("bar")?" · bar":""}${ex.equip.includes("band")?" · band":""}</div></div>
+        <div class="row" style="gap:6px"><span class="secs">${fmt(secsFor(ex,tier))}</span>${!doneToday?`<button class="btn ghost sm" data-swap="${i}" title="Swap for another ${SLOT_NAMES[ex.slot].toLowerCase()} exercise">swap</button>`:""}</div>
+      </div>`;}).join("")}</div>
+    ${plan.length? `<div class="row between"><span class="small muted mono">${fmt(planSecs(plan,tier))} total</span><span class="small muted">${state.settings.travel?"Travel mode":""}</span></div>`:`<p class="muted">Nothing fits the current equipment. Check Settings.</p>`}
+    ${doneToday? `<div class="stack"><span class="small muted">How did it feel?</span><div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div></div>`:""}
+    <div class="row actions"><button class="btn ${doneToday?"":"primary"}" data-act="${doneToday?"again":"start"}">${doneToday?"Again":"Start"}</button><button class="btn" data-act="${doneToday?"againmanual":"startmanual"}">${doneToday?"Again, no timer":"No timer"}</button></div>
+  </section>`;
+  html+=viewPostureCard();
+  html+=viewAnchors();
+  if(state.sessions>=12){
+    const last=state.benchmarks.length? state.benchmarks[state.benchmarks.length-1].date : null;
+    if(!last || daysBetween(last,todayStr())>=28) html+=`<section class="card flat stack"><span class="eyebrow">Monthly check</span><p class="small">Four numbers, once a month. They tell you whether the routine is doing anything.</p><button class="btn sm" data-goto="history">Record benchmarks</button></section>`;
+  }
+  const locked=UNLOCK_ORDER.filter(id=>!state.unlocked.includes(id)).length;
+  html+=`<p class="small muted" style="text-align:center">${state.unlocked.length} exercises in rotation · ${locked} still to come</p>`;
+  return html;
+}
+
+function viewPostureCard(){
+  const e=postureEntry(true); const tier=e.tier; const done=e.done.length>0;
+  const pd=state.postureSessions||0;
+  return `<section class="card stack posture-card">
+    <div class="row between">
+      <div><span class="eyebrow">Posture routine · separate programme</span><h2>${done?"Posture done":"Posture"}</h2></div>
+      <div class="seg" role="group" aria-label="Posture length">${[5,10].map(t=>`<button data-ptier="${t}" aria-pressed="${t===tier}">${t}′</button>`).join("")}</div>
+    </div>
+    <p class="small muted">Chin, upper back, chest, then the wall reset. Any time of day; it does not count toward the morning routine or its unlocks.</p>
+    <div class="plan">${e.plan.map((id,i)=>{ const ex=EXMAP[id]; const dn=e.done.includes(id); return `<div class="item ${dn?"done":""}">
+        <span class="idx">${String(i+1).padStart(2,"0")}</span>
+        <div><div class="name">${esc(ex.name)}</div><div class="meta">${ex.equip.includes("band")?"band":ex.equip.includes("floor")?"floor":"standing"}</div></div>
+        <div class="row" style="gap:6px"><span class="secs">${fmt(secsFor(ex,tier))}</span></div>
+      </div>`;}).join("")}</div>
+    <div class="row between"><span class="small muted mono">${fmt(planSecs(e.plan,tier))} total</span><span class="small muted">${pd} posture session${pd===1?"":"s"} so far</span></div>
+    ${done? `<div class="stack"><span class="small muted">How did it feel?</span><div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" data-kind="posture" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div></div>`:""}
+    <div class="row actions"><button class="btn ${done?"":"primary"}" data-act="${done?"pagain":"pstart"}">${done?"Again":"Start"}</button><button class="btn" data-act="${done?"pagainmanual":"pstartmanual"}">${done?"Again, no timer":"No timer"}</button></div>
+  </section>`;
+}
+function viewAnchors(){
+  if(state.sessions<8) return `<section class="card flat"><span class="eyebrow">Weekly anchors</span><p class="small muted">Unlocks after 8 sessions. The morning routine is the habit; the week is where the big longevity effects live.</p></section>`;
+  const wk=isoWeek(); const L=logFor(todayStr()); const w=L.weeks[wk]||{};
+  return `<section class="card stack"><div class="row between"><div><span class="eyebrow">Weekly anchors · ${wk}</span><h3>This week</h3></div></div>
+    ${ANCHORS.map(a=>{ const n=w[a.id]||0; return `<div class="toggle" style="align-items:flex-start"><div><div style="font-weight:500">${esc(a.name)} <span class="small muted mono">${n}/${a.target}</span></div><div class="small muted">${esc(a.why)}</div></div>
+      <div class="counter"><button data-anchor="${a.id}" data-delta="-1" aria-label="less">−</button><b>${n}</b><button data-anchor="${a.id}" data-delta="1" aria-label="more">+</button></div></div>`;}).join("")}
+  </section>`;
+}
+
+function viewRunner(){
+  const e=curEntry(); const ex=EXMAP[e.plan[run.i]]; const tot=secsFor(ex,e.tier);
+  const next=e.plan[run.i+1]?EXMAP[e.plan[run.i+1]].name:"finish";
+  const lead = ex.slot==="video" ? "" : esc(ex.steps[0]);
+  return `<section class="card runner">
+    <div class="row between"><span class="eyebrow">${run.kind==="posture"?"Posture · ":""}${run.i+1} of ${e.plan.length} · ${SLOT_NAMES[ex.slot]}</span><button class="btn ghost sm" data-act="cancel">End</button></div>
+    <h2>${esc(ex.name)}</h2>
+    ${run.manual
+      ? `<div class="big manual">${fmt(tot)} <span class="small muted" style="font-family:var(--body)">suggested</span></div><div class="bar"><i style="width:${100*run.i/e.plan.length}%"></i></div>`
+      : `<div class="big" id="clock">${fmt(run.left)}</div><div class="bar"><i id="bar" style="width:${100*(tot-run.left)/tot}%"></i></div>`}
+    ${ex.slot==="video"?videoBlock(ex,"runner"):`<p class="lead">${lead}</p>`}
+    <div class="row actions">
+      ${run.manual ? `<button class="btn primary" data-act="done">Next</button>` : `<button class="btn primary" data-act="pause">${run.paused?"Resume":"Pause"}</button><button class="btn" data-act="done">Next</button>`}
+    </div>
+    <div class="row actions"><button class="btn" data-act="back" ${run.i===0?"disabled":""}>Back</button><button class="btn" data-act="skip">Skip</button></div>
+    <div class="next">Next: ${esc(next)}</div>
+    <details class="more" ${run.more?"open":""}><summary>Exercise description</summary>${exGuide(ex,"runner",true)}</details>
+  </section>`;
+}
+function viewFinished(){
+  const e=curEntry(); const posture=run.kind==="posture";
+  return `<section class="card stack">
+    <span class="eyebrow">${posture?"Posture session "+(state.postureSessions||0):"Session "+state.sessions}</span><h2>Done.</h2>
+    <p class="small muted">${e.done.length} of ${e.plan.length} exercises · ${fmt(e.secs)}${e.skipped.length?` · skipped ${e.skipped.map(id=>EXMAP[id].name).join(", ")}`:""}</p>
+    <span class="small muted">How did it feel?</span>
+    <div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" data-kind="${run.kind}" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div>
+    <button class="btn primary block" data-act="close">Back to today</button>
+  </section>`;
+}
+
+function viewHistory(){
+  const t=todayStr(); const cells=[]; const days=98;
+  let last30=0, total=0, secs30=0, p30=0;
+  for(let i=days-1;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const ds=todayStr(d); const L=logFor(ds); const e=L.days[ds]; const pe=L.posture[ds]; const did=e&&e.done&&e.done.length; const pdid=pe&&pe.done&&pe.done.length; if(did&&i<30){last30++; secs30+=e.secs||0;} if(pdid&&i<30) p30++; cells.push(`<i class="${did?"t"+e.tier:""}${pdid?" p":""}${ds===t?" today":""}" title="${ds}${did?" · "+e.tier+" min":""}${pdid?" · posture "+pe.tier+" min":""}"></i>`); }
+  for(const y of Object.keys(logs)) for(const ds in logs[y].days){ const e=logs[y].days[ds]; if(e.done&&e.done.length) total++; }
+  const started=daysBetween(state.created,t);
+  const ex=Object.entries(state.counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  let html=`<section class="card stack"><span class="eyebrow">Last 14 weeks</span><div class="heat">${cells.join("")}</div>
+    <div class="grid2"><div class="stat"><b>${last30}</b><span>sessions, last 30 days</span></div><div class="stat"><b>${Math.round(secs30/60)}</b><span>minutes, last 30 days</span></div><div class="stat"><b>${total}</b><span>sessions since ${state.created}</span></div><div class="stat"><b>${started}</b><span>days since you started</span></div><div class="stat"><b>${p30}</b><span>posture sessions, last 30 days</span></div></div>
+    <p class="small muted">Squares: morning routine by length. A dot marks a posture session.</p>
+    <p class="note">A missed day changes nothing (Lally 2010). Consistency over months is the measure, not a streak.</p></section>`;
+  if(ex.length) html+=`<section class="card stack"><span class="eyebrow">Most practised</span><div class="tablewrap"><table><thead><tr><th>Exercise</th><th>Times</th><th>Last</th></tr></thead><tbody>${ex.map(([id,n])=>`<tr><td>${esc(EXMAP[id]?EXMAP[id].name:id)}</td><td class="num">${n}</td><td class="num">${state.lastDone[id]||""}</td></tr>`).join("")}</tbody></table></div></section>`;
+  // benchmarks
+  if(state.sessions>=12){
+    const rows=state.benchmarks.slice(-12).reverse();
+    html+=`<section class="card stack"><span class="eyebrow">Benchmarks</span><h3>Monthly numbers</h3>
+      <div class="grid2">${BENCH.map(b=>`<label class="field">${esc(b.name)} (${b.unit})<input type="number" inputmode="decimal" step="0.5" id="bench_${b.id}" placeholder="${esc(b.hint)}"></label>`).join("")}</div>
+      <button class="btn primary" data-act="savebench">Save today's numbers</button>
+      ${rows.length?`<div class="tablewrap"><table><thead><tr><th>Date</th>${BENCH.map(b=>`<th>${esc(b.name.split(",")[0])}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr><td class="num">${r.date}</td>${BENCH.map(b=>`<td class="num">${r[b.id]??""}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:""}
+    </section>`;
+  } else html+=`<section class="card flat"><span class="eyebrow">Benchmarks</span><p class="small muted">Unlock after 12 sessions: one-leg stand with eyes closed, dead hang, sit–rise score and morning resting heart rate, once a month.</p></section>`;
+  return html;
+}
+
+function viewLibrary(){
+  const slots=["breath","spine","core","posture","shoulders","hips","legs","wrists","balance","floor","mind","video"];
+  const locked=UNLOCK_ORDER.filter(id=>!state.unlocked.includes(id));
+  let html=`<section class="card stack lib"><div class="row between"><div><span class="eyebrow">In rotation</span><h2>${state.unlocked.length} exercises</h2></div></div>`;
+  for(const s of slots){
+    const ids=state.unlocked.filter(id=>EXMAP[id].slot===s); if(!ids.length) continue;
+    html+=`<div class="eyebrow" style="margin-top:8px">${SLOT_NAMES[s]}</div>`;
+    // personal notes live in synced settings, not in the source, so the code can sit in a public repo
+    if(s==="posture" && profile.postureNote) html+=`<div class="note" style="margin:6px 0 4px;white-space:pre-line">${esc(profile.postureNote)}</div>`;
+    html+=ids.map(id=>exDetails(EXMAP[id])).join("");
+  }
+  html+=`</section>`;
+  html+=`<section class="card flat stack lib"><div class="row between"><div><span class="eyebrow">Still to come</span><h3>${locked.length} exercises, one at a time</h3></div><button class="btn sm" data-act="peek">${state.peek?"Hide":"Peek at the list"}</button></div>
+    <p class="small muted">They arrive in this order, roughly one every ${PACE[state.settings.pace].days}+ days once you have done ${PACE[state.settings.pace].sessions} sessions since the last one. Items needing equipment you have turned off wait their turn.</p>
+    ${state.peek? locked.map(id=>`<div class="ex locked"><div class="row between"><span>${esc(EXMAP[id].name)}</span><span class="small">${SLOT_NAMES[EXMAP[id].slot]}${equipOK(EXMAP[id])?"":" · needs equipment"}</span></div></div>`).join(""):""}
+  </section>`;
+  return html;
+}
+function exDetails(ex){
+  return `<details class="ex"><summary><span>${esc(ex.name)}</span><span class="row" style="gap:6px"><span class="small muted mono">${state.counts[ex.id]||0}×</span>${gradeChip(ex.grade)}</span></summary>
+    <div class="body"><p class="small muted">${SLOT_NAMES[ex.slot]} · ${fmt(secsFor(ex,15))}${ex.equip.length?" · needs "+ex.equip.join(", "):""}</p>${exGuide(ex,"lib")}</div></details>`;
+}
+
+/* Structured guide: mini table of contents, then Why / Protects / How / Pitfalls / Evidence / Video. `ctx` keeps ids unique per place. */
+const GUIDE_SECTIONS=[["why","Why"],["protects","Protects"],["how","How"],["pitfalls","Pitfalls"],["evidence","Evidence"],["video","Video"]];
+function exGuide(ex,ctx,withHow){
+  const k=s=>`g_${ctx}_${ex.id}_${s}`;
+  const sections = (ctx==="runner"&&!withHow) ? GUIDE_SECTIONS.filter(([s])=>s!=="how") : GUIDE_SECTIONS;
+  const note=profile.notes[ex.id]||"";
+  const mine = ctx==="lib"
+    ? `<label class="field">My note<textarea id="note_${ex.id}" class="prose short" placeholder="Anything specific to you for this one">${esc(note)}</textarea></label><div class="row"><button type="button" class="btn sm" data-savenote="${ex.id}">Save note</button></div>`
+    : (note ? `<p class="note mynote">${esc(note)}</p>` : "");
+  return `<div class="guide">${mine}
+    <nav class="toc" aria-label="Sections">${sections.map(([s,l])=>`<button type="button" data-jump="${k(s)}">${l}</button>`).join("")}</nav>
+    <section id="${k("why")}"><h4>Why it is here</h4><p>${esc(ex.why)}</p></section>
+    <section id="${k("protects")}"><h4>What it protects</h4><ul>${ex.protects.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></section>
+    ${(ctx==="runner"&&!withHow)?"":`<section id="${k("how")}"><h4>How to do it</h4><ol>${ex.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol></section>`}
+    <section id="${k("pitfalls")}"><h4>Pitfalls</h4><ul>${ex.pitfalls.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></section>
+    <section id="${k("evidence")}"><h4>Evidence ${gradeChip(ex.grade)}</h4><p>${esc(ex.evidence)}</p></section>
+    <section id="${k("video")}"><h4>Video</h4>${videoBlock(ex,ctx)}</section>
+  </div>`;
+}
+function videoBlock(ex,ctx){
+  if(ex.video){
+    const url=`https://www.youtube.com/watch?v=${ex.video.id}`;
+    const cap=`<p class="small muted">${esc(ex.video.title)}${ex.video.channel?` · ${esc(ex.video.channel)}`:""}</p>`;
+    if(CAN_EMBED){
+      const fid=`yt_${ctx}_${ex.id}`;
+      return `<div class="player" id="${fid}" data-vid="${ex.video.id}"><button type="button" class="playbtn" data-play="${fid}" aria-label="Play video"><svg viewBox="0 0 24 24" width="56" height="56"><circle cx="12" cy="12" r="11" fill="currentColor" opacity=".9"/><path d="M10 8l6 4-6 4z" fill="var(--surface)"/></svg><span>Play here</span></button></div>${cap}<a class="small" href="${url}" target="_blank" rel="noopener">Open on YouTube instead</a>`;
+    }
+    return `<a class="btn" href="${url}" target="_blank" rel="noopener">▶ Watch on YouTube</a>${cap}<p class="small muted">Inline playback is blocked inside claude.ai; the self-hosted copy of this app plays it here.</p>`;
+  }
+  return `<a class="btn" href="${ex.search}" target="_blank" rel="noopener">Search YouTube</a><p class="small muted">No verified video for this one yet; the search opens matching tutorials.</p>`;
+}
+function playVideo(fid){
+  const box=document.getElementById(fid); if(!box) return;
+  const id=box.dataset.vid;
+  box.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1" title="Exercise video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+}
+function jumpTo(id){ const el=document.getElementById(id); if(!el) return; el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"}); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),900); }
+
+function viewSettings(){
+  const s=state.settings;
+  const sw=(k,on)=>`<button class="switch" role="switch" aria-checked="${on}" data-switch="${k}"></button>`;
+  return `<section class="card stack"><span class="eyebrow">Appearance</span>
+    <div class="seg" role="group" aria-label="Theme">${[["dark","Dark"],["light","Light"],["system","System"]].map(([k,l])=>`<button data-themeset="${k}" aria-pressed="${(s.theme||"dark")===k}">${l}</button>`).join("")}</div></section>
+  <section class="card stack"><span class="eyebrow">Equipment today</span>
+    <div class="toggle"><div><div>Travel mode</div><div class="small muted">Turns off bar, bands and step. Floor work stays.</div></div>${sw("travel",s.travel)}</div>
+    <div class="toggle"><div>Pull-up bar</div>${sw("equip.bar",s.equip.bar)}</div>
+    <div class="toggle"><div>Bands or dumbbells</div>${sw("equip.band",s.equip.band)}</div>
+    <div class="toggle"><div>Mat or floor space</div>${sw("equip.floor",s.equip.floor)}</div>
+    <div class="toggle"><div>Step or box</div>${sw("equip.step",s.equip.step)}</div>
+    <p class="small muted">Changing equipment rebuilds today's plan if you have not started it.</p></section>
+  <section class="card stack"><span class="eyebrow">Posture</span>
+    <div class="toggle"><div><div>Posture focus</div><div class="small muted">Unlocks the whole posture set now and guarantees one posture exercise in every version (two at 15 minutes). The 5-minute version grows to about 6.</div></div>${sw("postureFocus",s.postureFocus)}</div>
+    <p class="small muted">${POSTURE.filter(id=>state.unlocked.includes(id)).length} of ${POSTURE.length} posture exercises in rotation.</p>
+    <label class="field">Your posture notes <span class="small muted">(shown above the posture exercises in Library; kept with your data, not in the app's code)</span><textarea id="pnote" class="prose" placeholder="Baseline from your side photos, what to re-check and when">${esc(profile.postureNote)}</textarea></label>
+    <div class="row"><button class="btn sm" data-act="savepnote">Save notes</button></div></section>
+  ${syncCard()}
+  ${profileCard()}
+  <section class="card stack"><span class="eyebrow">Pace of new exercises</span>
+    <div class="seg" role="group">${["slow","normal","fast"].map(p=>`<button data-pace="${p}" aria-pressed="${s.pace===p}">${p}</button>`).join("")}</div>
+    <p class="small muted">Slow: one new item after 7 sessions and 7 days. Normal: 4 sessions and 5 days. Fast: 2 and 2.</p>
+    <div class="toggle"><div>Pause new exercises</div>${sw("pauseUnlocks",s.pauseUnlocks)}</div>
+    <div class="toggle"><div>Sound at the end of each exercise</div>${sw("sound",s.sound)}</div></section>
+  <section class="card stack"><span class="eyebrow">Your data</span>
+    <p class="small muted">${online?"Saved to your account and synced between devices.":"Saved in this browser only."} Export is a plain text copy you can keep anywhere; import replaces what is here.</p>
+    <div class="row"><button class="btn sm" data-act="export">Copy export</button><button class="btn sm" data-act="showimport">Import…</button></div>
+    <div id="io" class="stack hidden"><textarea id="iotext" placeholder="Paste an export here"></textarea><button class="btn sm" data-act="import">Replace my data with this</button></div></section>
+  <section class="card flat stack"><span class="eyebrow">About</span>
+    <p class="small muted">Built from a review of the longevity and exercise research. Evidence chips mean: solid = trials or large consistent data for the stated reason; moderate = real but limited (older or clinical populations, association only); thin = plausible, practitioner-level, no trials. Nothing here treats a condition; pain that keeps coming back belongs with a clinician.</p></section>`;
+}
+
+function profileCard(){
+  const c=profileCount();
+  return `<section class="card stack"><span class="eyebrow">Personal profile</span>
+    <p class="small muted">${c.ex||c.notes ? `${c.ex} exercises use your own text; ${c.notes} personal notes.` : "No profile loaded: the exercises use the general text."} Kept on this device${gistOn()?" and, encrypted, in your sync gist":""}, never in the app's code. Write a note on any exercise in Library, or load your profile file.</p>
+    <div class="row"><label class="btn sm" for="pfile">Load file</label><input id="pfile" type="file" accept=".json,application/json" hidden>
+      <button class="btn sm" data-act="pdownload">Download</button><button class="btn sm" data-act="pedit">Edit as text</button></div>
+    <div id="pio" class="stack hidden"><textarea id="ptext" spellcheck="false"></textarea>
+      <div class="row"><button class="btn sm" data-act="psave">Save profile</button><button class="btn sm ghost danger" data-act="pclear">Remove profile</button></div></div></section>`;
+}
+function loadProfileText(txt){
+  try{ profile=cleanProfile(JSON.parse(txt)); saveProfile(); toast("Profile loaded"); render(); }
+  catch(e){ toast("That file is not a valid profile"); }
+}
+
+function syncCard(){
+  if(!CAN_EMBED) return "";   // inside claude.ai the artifact database syncs instead
+  if(gistOn()) return `<section class="card stack"><span class="eyebrow">Sync between devices</span>
+    <p class="small muted">Connected to a private GitHub gist. Everything is encrypted with your passphrase on this device before upload; GitHub only stores scrambled text. Changes upload a moment after you make them, and the app pulls the latest whenever it opens or comes back to the front.</p>
+    <div class="row"><button class="btn sm" data-act="gistsync">Sync now</button><button class="btn sm" data-act="gistoff">Disconnect this device</button></div></section>`;
+  return `<section class="card stack"><span class="eyebrow">Sync between devices</span>
+    <p class="small muted">Optional. Your log and profile go into one private gist, encrypted on this device with your passphrase. Connect every device with the same token and passphrase.</p>
+    <label class="field">GitHub token (gist access only)<input id="gisttoken" type="password" autocomplete="off" spellcheck="false" placeholder="ghp_…"></label>
+    <label class="field">Passphrase<input id="gistpass" type="password" autocomplete="new-password" spellcheck="false" placeholder="A sentence you will remember"></label>
+    <div class="row"><button class="btn sm" data-act="giston">Connect</button><a class="btn sm" href="https://github.com/settings/tokens/new?scopes=gist&description=Morning%20Reserve" target="_blank" rel="noopener">Make a token</a></div>
+    <p class="small muted">On the token page tick only <b>gist</b>; it then cannot read or change anything else on your account. If you forget the passphrase the synced copy cannot be opened, but each device keeps its own data.</p></section>`;
+}
+
+/* ===================== Events ===================== */
+function bind(){
+  const v=$("#view");
+  v.onchange = ev => { if(ev.target.id==="pfile" && ev.target.files[0]) ev.target.files[0].text().then(loadProfileText); };
+  v.onclick = ev => {
+    const b=ev.target.closest("button,a,summary"); if(!b) return;
+    if(b.tagName==="SUMMARY"){ const d=b.parentElement; if(d.classList.contains("more")&&run){ setTimeout(()=>{run.more=d.open;},0);} return; }
+    if(b.dataset.jump){ jumpTo(b.dataset.jump); return; }
+    if(b.dataset.play){ playVideo(b.dataset.play); return; }
+    if(b.dataset.tier){ const t=+b.dataset.tier; const e=todayEntry(true); if(e.done.length){ toast("Already logged today; change it tomorrow"); return; } replan(t); render(); return; }
+    if(b.dataset.swap!==undefined){ swapItem(+b.dataset.swap); return; }
+    if(b.dataset.feel){ setFeel(b.dataset.feel,b.dataset.kind||"main"); return; }
+    if(b.dataset.ptier){ const t=+b.dataset.ptier; const e=postureEntry(true); if(e.done.length){ toast("Already logged today; change it tomorrow"); return; } replanPosture(t); render(); return; }
+    if(b.dataset.goto){ tab=b.dataset.goto; render(); return; }
+    if(b.dataset.anchor){ const wk=isoWeek(); const L=logFor(todayStr()); const w=L.weeks[wk]||(L.weeks[wk]={}); w[b.dataset.anchor]=Math.max(0,(w[b.dataset.anchor]||0)+(+b.dataset.delta)); saveLog(todayStr()); render(); return; }
+    if(b.dataset.savenote){ const id=b.dataset.savenote, t=$("#note_"+id).value.trim(); if(t) profile.notes[id]=t; else delete profile.notes[id]; saveProfile(); toast(t?"Note saved":"Note removed"); return; }
+    if(b.dataset.themeset){ state.settings.theme=b.dataset.themeset; saveState(); render(); return; }
+    if(b.dataset.pace){ state.settings.pace=b.dataset.pace; saveState(); render(); return; }
+    if(b.dataset.switch){ const k=b.dataset.switch; const on=b.getAttribute("aria-checked")!=="true";
+      if(k.startsWith("equip.")) state.settings.equip[k.slice(6)]=on; else state.settings[k]=on;
+      if(k==="postureFocus" && on){ for(const id of POSTURE){ if(!state.unlocked.includes(id)) state.unlocked.push(id); } if(state.offered && POSTURE.includes(state.offered.id)) state.offered=null; toast("Posture set added to the rotation"); }
+      saveState(); const e=todayEntry(true); if(!e.done.length && (k.startsWith("equip.")||k==="travel"||k==="postureFocus")) replan(e.tier); const pe=postureEntry(true); if(!pe.done.length && (k.startsWith("equip.")||k==="travel")) replanPosture(pe.tier); render(); return; }
+    switch(b.dataset.act){
+      case "start": startSession("main"); break;
+      case "startmanual": startSession("main",true); break;
+      case "again": { const e=todayEntry(true); e.counted=true; startSession("main"); break; }
+      case "againmanual": { const e=todayEntry(true); e.counted=true; startSession("main",true); break; }
+      case "pstart": startSession("posture"); break;
+      case "pstartmanual": startSession("posture",true); break;
+      case "pagainmanual": { const e=postureEntry(true); e.counted=true; startSession("posture",true); break; }
+
+      case "pagain": { const e=postureEntry(true); e.counted=true; startSession("posture"); break; }
+      case "accept": acceptOffer(); break;
+      case "snooze": snoozeOffer(); break;
+      case "pause": run.paused=!run.paused; render(); break;
+      case "done": advance(true); break;
+      case "back": goBack(); break;
+      case "skip": advance(false); break;
+      case "cancel": { if(run.done.length){ const e=curEntry(); e.done=[...new Set([...e.done,...run.done])]; commitDay(e,todayStr(),run.kind); } cancelSession(); break; }
+      case "close": run=null; render(); break;
+      case "peek": state.peek=!state.peek; saveState(); render(); break;
+      case "savebench": { const r={date:todayStr()}; let any=false; for(const bb of BENCH){ const val=$("#bench_"+bb.id).value; if(val!==""){ r[bb.id]=+val; any=true; } } if(!any){ toast("Enter at least one number"); return; } state.benchmarks.push(r); saveState(); toast("Saved"); render(); break; }
+      case "export": { const data=JSON.stringify({state,logs,profile}); const ta=$("#iotext"); $("#io").classList.remove("hidden"); ta.value=data; navigator.clipboard&&navigator.clipboard.writeText(data).then(()=>toast("Copied"),()=>{ ta.focus(); ta.select(); toast("Select and copy the text"); }); break; }
+      case "reload": location.reload(); break;
+      case "pdownload": { const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([JSON.stringify(profile,null,2)+"\n"],{type:"application/json"})); a.download="profile.json"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000); break; }
+      case "pedit": { $("#pio").classList.toggle("hidden"); $("#ptext").value=JSON.stringify(profile,null,2); break; }
+      case "psave": loadProfileText($("#ptext").value); break;
+      case "pclear": { if(!b.dataset.armed){ b.dataset.armed="1"; b.textContent="Tap again to remove"; return; } profile=defaultProfile(); saveProfile(); toast("Profile removed from this device"); render(); break; }
+      case "savepnote": profile.postureNote=$("#pnote").value.trim(); saveProfile(); toast("Saved"); render(); break;
+      case "giston": { const t=$("#gisttoken").value.trim(), pw=$("#gistpass").value; if(!t){ toast("Paste a token first"); return; } if(pw.length<8){ toast("Use a passphrase of at least 8 characters"); return; } toast("Connecting…"); gistConnect(t,pw); break; }
+      case "gistsync": gistSync(false).then(()=>toast(online?"Synced":"Could not sync; saved on this device")); break;
+      case "gistoff": clearTimeout(gist.timer); gist.timer=null; gist.cfg=null; LS.set("gist",null); setSync(false); toast("Disconnected; your data stays on this device"); render(); break;
+      case "showimport": $("#io").classList.toggle("hidden"); $("#iotext").value=""; break;
+      case "import": { try{ const o=JSON.parse($("#iotext").value); if(!o.state||!o.logs) throw 0; state=mergeState(o.state); logs=o.logs; if(o.profile){ try{ profile=cleanProfile(o.profile); LS.set("profile",profile); applyProfile(); }catch(e){} } saveState(); for(const y of Object.keys(logs)) persist("log-"+y,logs[y]); gistReplace(); toast("Imported"); render(); }catch(e){ toast("That is not an export from this app"); } break; }
+    }
+  };
+}
+document.querySelector("nav.tabs").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; if(run&&!run.finished){ toast("Finish or end the session first"); return; } tab=b.dataset.tab; enter(); render(); window.scrollTo(0,0); });
+
+/* ===================== Boot ===================== */
+loadLocal();
+if(state.settings.postureNote && !profile.postureNote){ profile.postureNote=state.settings.postureNote; LS.set("profile",profile); }   // notes saved before the profile existed
+applyProfile();
+const h=(location.hash||"").slice(1); if(["today","history","library","settings"].includes(h)) tab=h;
+enter();
+render();
+connect();
+gistSync(false);
+</script>

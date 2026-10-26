@@ -1,0 +1,58 @@
+[
+  {
+    "id": "chin_tuck",
+    "videoId": "ekJzJTnd43s",
+    "title": "Physical Therapist Explains How To Perform Chin Tucks (Fix Forward Head Posture)",
+    "channel": "Office Athlete",
+    "seconds": 106,
+    "note": "Verified via oEmbed; 1:46, covers standing and supine chin tuck. Small PT channel (Dr. Craven), description pitches a free assessment but the video itself is a plain tutorial. Alternative: vZMUZYDolSY (Bob & Brad, 3 exercises in 2 min, chin tuck included)."
+  },
+  {
+    "id": "doorway",
+    "videoId": "l5nMszaaJ28",
+    "title": "The Doorway Pec Stretch UPGRADED",
+    "channel": "Precision Movement",
+    "seconds": 414,
+    "note": "Verified via oEmbed; Eric Wong (strength coach), 6:54 so slightly over the 6-min cap; adds active elements to the classic stretch. Plain physio demo alternatives: 069o76BafTk (OMPT Specialists, PT Paula, both heights) or Qa4LPRjj0Yw (MedBridge, single-arm at 120 deg)."
+  },
+  {
+    "id": "tspine_ext",
+    "videoId": "w73GJ-Uag9I",
+    "title": "Mid-Back (Thoracic) Extension on Foam Roll",
+    "channel": "Coury & Buehler Physical Therapy",
+    "seconds": null,
+    "note": "Verified via oEmbed; physio-clinic exercise demo, foam roller version. Duration not retrievable (YouTube bot wall) but clinic demos of this type run ~1-2 min."
+  },
+  {
+    "id": "ytw",
+    "videoId": "1RsEmC4Us9c",
+    "title": "YTWL's (Weighted Variation) - Tutorial",
+    "channel": "The Strength Institute",
+    "seconds": null,
+    "note": "Verified via oEmbed; covers Y, T, W (and L) positions with light dumbbells, cues transfer to floor bodyweight. No dedicated short Y-T-W tutorial found on the preferred channels. Y-only physio alternative: juoKsTqy77E (PhysioExercise, prone Y/V-raise for lower trap)."
+  },
+  {
+    "id": "facepull",
+    "videoId": "Wq-Td9UXRK8",
+    "title": "Banded Face Pulls | GPS Human Performance",
+    "channel": "GPS Human Performance",
+    "seconds": 92,
+    "note": "Verified via oEmbed; 1:32 band-specific form demo from a tactical S&C coach (Geoffrey Steinbacher). Alternative band tutorial: PYj77in44ms (Horton Barbell, exercise library). Athlean-X ljgqer1ZpXg is the famous one but cable-only."
+  },
+  {
+    "id": "posture_wall",
+    "videoId": "XkiTmj4mRr4",
+    "title": "Bruegger's Posture standing wall",
+    "channel": "Rehab My Patient",
+    "seconds": null,
+    "note": "Verified via oEmbed; physio exercise-prescription library, short standing posture reset against a wall (Bruegger's). For the pure wall-check/test version see Rp7t7LBGbb8 (Rhi Bowden, 'Easy 10-Second Posture Test | Stand Against A Wall', #PhysioTips but credentials unverified)."
+  },
+  {
+    "id": "glute_bridge",
+    "videoId": "OUgsJ8-Vi0E",
+    "title": "How to Perform the Perfect Glute Bridge",
+    "channel": "Airrosti Rehab Centers",
+    "seconds": null,
+    "note": "Verified via oEmbed; rehab-provider network demo, basic bodyweight bridge with cues. Duration not retrievable but short. Alternative: EEtd0uY-bMw (Get Exercise Confident, technique + common mistakes, credentials unstated)."
+  }
+]
