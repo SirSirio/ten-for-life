@@ -3,11 +3,13 @@
    180 up, -90 left. Bones keep their length, so poses stay anatomically plausible while they interpolate.
    Side view by default (far-side limbs drawn fainter); front view for movements in the frontal plane.
    Each frame: pose fields + d (seconds to move to the next frame) + hold (seconds to stay first).
+   Optional per pose: st, sn (torso and neck length factors) and sa, sl (arm and leg segment factors), to foreshorten a
+   segment that points toward the viewer.
    Spec options: view, ground (false = float), pin [joint, x, y], box (viewBox crop), ft (foot length), noEye, props. */
 const FIG = (() => {
   const W = 160, H = 120, GROUND = 112, R = 6.5;
   const L = {t: 30, n: 10, u: 16, f: 15, h: 21, s: 21, ft: 6};
-  const D = {t: 180, h: 180, a: [0, 0, 0, 0], l: [0, 0, 0, 0], c: 0, b: 0, lift: 0, hy: 0};
+  const D = {t: 180, h: 180, a: [0, 0, 0, 0], l: [0, 0, 0, 0], c: 0, b: 0, lift: 0, hy: 0, ox: 0, oy: 0, st: 1, sn: 1, sa: [1, 1, 1, 1], sl: [1, 1, 1, 1]};
   const rad = Math.PI / 180;
   const P = (p, a, len) => [p[0] + len * Math.sin(a * rad), p[1] + len * Math.cos(a * rad)];
   const pose = (...parts) => Object.assign({}, D, ...parts);
@@ -15,6 +17,7 @@ const FIG = (() => {
   // shared starting positions
   const STAND = {};
   const SEAT = {a: [25, 100, 25, 100], l: [80, -100, 72, -95]};                 // cross-legged
+  const BELLY = {a: [-12, 72, 4, 4], sa: [1, .8, 1, 1]};                            // standing, near hand resting on the belly
   const QUAD = {t: 110, h: 100, l: [0, -90, 0, -90]};                             // hands and knees
   const SQUAT = {t: 156, h: 168, a: [62, 100, 62, 100], l: [104, -28, 104, -28]};
   const SUPINE = {t: -90, h: -90, a: [90, 90, 90, 90], l: [135, 32, 135, 32]};   // on the back, knees bent, head left
@@ -26,8 +29,8 @@ const FIG = (() => {
     pose({a: [95, 95, -95, -95], d: 1.6})]};
 
   const SPECS = {
-    breath_slow: {props: ["breath"], frames: [pose(SEAT, {b: 0, d: 4}), pose(SEAT, {b: 1, t: 178, d: 6})]},
-    breath_sigh: {props: ["breath"], frames: [pose(SEAT, {b: 0, d: 2, hold: 1}), pose(SEAT, {b: .75, t: 178.5, d: .5}), pose(SEAT, {b: 1, t: 178, d: 5})]},
+    breath_slow: {props: ["breath"], frames: [pose(BELLY, {b: 0, d: 4}), pose(BELLY, {b: 1, a: [-8, 66, 6, 6], d: 6})]},
+    breath_sigh: {props: ["breath"], frames: [pose(BELLY, {b: 0, d: 2, hold: 1}), pose(BELLY, {b: .75, a: [-9, 68, 5, 5], d: .5}), pose(BELLY, {b: 1, a: [-7, 65, 6, 6], d: 5})]},
     catcamel: {frames: [pose(QUAD, {d: 1}), pose(QUAD, {c: 9, h: 25, d: 1.2, hold: 1}), pose(QUAD, {d: 1}), pose(QUAD, {c: -7, h: 150, d: 1.2, hold: 1})]},
     birddog: {frames: [
       pose(QUAD, {d: 1}), pose(QUAD, {a: [105, 105, 0, 0], l: [0, -90, -75, -75], d: 1, hold: 2}),
@@ -35,18 +38,18 @@ const FIG = (() => {
     sideplank: {frames: [
       pose({t: -114, h: -114, a: [0, -90, 66, 66], l: [84, 84, 84, 84], d: 1, hold: .5}),
       pose({t: -103, h: -103, a: [0, -90, 77, 77], l: [77, 77, 77, 77], d: 1, hold: 2.5})]},
-    balance: {frames: [pose({d: .8, hold: .4}), pose({l: [0, 0, 30, -35], a: [8, 8, -8, -8], d: .8, hold: 3})]},
+    balance: {frames: [pose({d: .8, hold: .4}), pose({l: [28, -12, 0, 0], a: [10, 10, -10, -10], d: .8, hold: 3})]},
     sitrise: {frames: [pose({d: 1.2, hold: .6}), pose(SQUAT, {a: [80, 90, 80, 90], d: 1}), pose(SEAT, {d: 1.2, hold: 1}), pose(SQUAT, {a: [80, 90, 80, 90], d: 1.2})]},
     hang: {ground: false, pin: ["haN", 80, 10], props: ["bar"], frames: [
-      pose({t: 178, h: 178, a: [180, 180, 180, 180], l: [12, -20, 16, -26], d: 1.6}),
-      pose({t: 182, h: 181, a: [180, 180, 180, 180], l: [8, -16, 12, -22], d: 1.6})]},
+      pose({t: 178, h: 178, a: [180, 180, 180, 180], l: [3, -4, 6, -8], d: 1.6}),
+      pose({t: 182, h: 181, a: [180, 180, 180, 180], l: [-1, -2, 2, -5], d: 1.6})]},
     wall_slide: {view: "front", props: ["wallback"], frames: [
       pose({a: [50, 160, -50, -160], d: 1.4, hold: .4}), pose({a: [150, 170, -150, -170], d: 1.4, hold: .4})]},
     hip9090: {view: "front", frames: [
-      pose({a: [20, 20, -20, -20], l: [120, -10, 35, -70], d: 1.2, hold: .8}),
-      pose({a: [20, 20, -20, -20], l: [150, 15, -150, -15], d: 1.2}),
-      pose({a: [20, 20, -20, -20], l: [-35, 70, -120, 10], d: 1.2, hold: .8}),
-      pose({a: [20, 20, -20, -20], l: [150, 15, -150, -15], d: 1.2})]},
+      pose({a: [25, 10, -25, -10], l: [107, -20, 133, -55], sl: [1, .45, .85, 1], d: 1.2, hold: 1}),
+      pose({a: [25, 10, -25, -10], l: [160, 24, -160, -24], d: 1.2}),
+      pose({a: [25, 10, -25, -10], l: [-133, 55, -107, 20], sl: [.85, 1, 1, .45], d: 1.2, hold: 1}),
+      pose({a: [25, 10, -25, -10], l: [160, 24, -160, -24], d: 1.2})]},
     hipflexor: {frames: [
       pose({a: [10, 10, 10, 10], l: [90, 0, 0, -90], d: 1.2, hold: .5}),
       pose({a: [172, 176, 172, 176], l: [72, -12, -28, -95], d: 1.2, hold: 2})]},
@@ -85,25 +88,25 @@ const FIG = (() => {
     bdj_full: BDJ1,
     yoga_flow: {frames: [
       pose({a: [180, 180, 180, 180], d: 1.2, hold: .5}),
-      pose({t: 20, h: 10, a: [5, 5, 5, 5], d: 1.2, hold: .8}),
+      pose({t: 35, h: 25, a: [70, 50, 70, 50], l: [-8, 8, -8, 8], d: 1.2, hold: .8}),
       pose({t: 50, h: 35, a: [40, 40, 40, 40], l: [-35, -35, -35, -35], d: 1.2, hold: 1.5})]},
     ankleCARs: {ft: 10, frames: [
-      pose({l: [0, 0, 40, 10], fa: [null, 60], d: .7}), pose({l: [0, 0, 40, 10], fa: [null, 100], d: .7}),
-      pose({l: [0, 0, 40, 10], fa: [null, 140], d: .7}), pose({l: [0, 0, 40, 10], fa: [null, 100], d: .7})]},
+      pose({l: [40, 10, 0, 0], fa: [60, null], d: .7}), pose({l: [40, 10, 0, 0], fa: [100, null], d: .7}),
+      pose({l: [40, 10, 0, 0], fa: [140, null], d: .7}), pose({l: [40, 10, 0, 0], fa: [100, null], d: .7})]},
     band_pull: {view: "front", props: ["bandHands"], frames: [
-      pose({a: [70, -115, -70, 115], d: 1.1, hold: .3}), pose({a: [92, 92, -92, -92], d: 1.1, hold: .8})]},
-    pogo: {frames: [pose({a: [10, 10, 10, 10], d: .18}), pose({a: [10, 10, 10, 10], lift: 7, fa: [50, 50], d: .18})]},
+      pose({a: [60, 20, -60, -20], sa: [.3, .3, .3, .3], d: 1.1, hold: .3}), pose({a: [92, 92, -92, -92], d: 1.1, hold: .8})]},
+    pogo: {frames: [pose({a: [-30, 60, -30, 60], d: .18}), pose({a: [-30, 60, -30, 60], lift: 7, fa: [50, 50], d: .18})]},
     gmb_daily: {frames: [
-      pose({t: 100, h: 95, a: [15, 15, -5, -5], l: [15, -35, 35, -15], d: .7}),
-      pose({t: 100, h: 95, a: [-5, -5, 15, 15], l: [35, -15, 15, -35], d: .7})]},
-    doorway: {props: [["post", "elN", 2]], frames: [
-      pose({a: [80, 175, 80, 175], d: 1.2, hold: .5}),
-      pose({t: 168, h: 170, a: [40, 175, 40, 175], l: [25, -5, -10, -10], d: 1.2, hold: 2})]},
+      pose({t: 100, h: 92, a: [14, 14, -6, -6], l: [-6, -82, 12, -74], d: .7}),
+      pose({t: 100, h: 92, a: [-6, -6, 14, 14], l: [12, -74, -6, -82], d: .7})]},
+    doorway: {view: "front", ground: false, noEye: true, props: ["door"], frames: [
+      pose({st: .3, sn: .05, a: [90, 180, -90, -180], sa: [1, .15, 1, .15], sl: [.05, .05, .05, .05], d: 1.2, hold: .5}),
+      pose({st: .3, sn: .05, oy: 9, a: [118, 180, -118, -180], sa: [1.12, .15, 1.12, .15], sl: [.05, .05, .05, .05], d: 1.2, hold: 2})]},
     chin_tuck: {box: [36, 0, 88, 66], frames: [
       pose({h: 166, hf: 90, d: 1, hold: .5}), pose({h: 194, hf: 90, d: 1, hold: 1.5})]},
     tspine_ext: {props: ["roller"], frames: [
-      pose(SUPINE, {t: -95, h: -100, a: [-165, -24, -165, -24], d: 1.4, hold: .5}),
-      pose(SUPINE, {t: -80, h: -66, a: [-152, -12, -152, -12], d: 1.4, hold: 1.5})]},
+      pose(SUPINE, {t: -102, h: -104, a: [-150, -40, -150, -40], d: 1.4, hold: .5}),
+      pose(SUPINE, {t: -93, h: -74, a: [-140, -30, -140, -30], d: 1.4, hold: 1.5})]},
     ytw: {view: "front", ground: false, noEye: true, props: ["mat"], frames: [
       pose({a: [150, 150, -150, -150], d: .9, hold: 1.2}), pose({a: [90, 90, -90, -90], d: .9, hold: 1.2}),
       pose({a: [40, 140, -40, -140], d: .9, hold: 1.2})]},
@@ -118,11 +121,12 @@ const FIG = (() => {
   };
 
   function joints(q, front, ft) {
-    const hip = [0, 0], sh = P(hip, q.t, L.t), head = P(sh, q.h, L.n);
+    const sa = q.sa || D.sa, sl = q.sl || D.sl;
+    const hip = [0, 0], sh = P(hip, q.t, L.t * (q.st != null ? q.st : 1)), head = P(sh, q.h, L.n * (q.sn != null ? q.sn : 1));
     const so = front ? 8 : 0, ho = front ? 5 : 0;   // front view: shoulder and hip width; "near" is the viewer's right
     const shN = [sh[0] + so, sh[1]], shF = [sh[0] - so, sh[1]], hpN = [ho, 0], hpF = [-ho, 0];
-    const elN = P(shN, q.a[0], L.u), haN = P(elN, q.a[1], L.f), elF = P(shF, q.a[2], L.u), haF = P(elF, q.a[3], L.f);
-    const knN = P(hpN, q.l[0], L.h), anN = P(knN, q.l[1], L.s), knF = P(hpF, q.l[2], L.h), anF = P(knF, q.l[3], L.s);
+    const elN = P(shN, q.a[0], L.u * sa[0]), haN = P(elN, q.a[1], L.f * sa[1]), elF = P(shF, q.a[2], L.u * sa[2]), haF = P(elF, q.a[3], L.f * sa[3]);
+    const knN = P(hpN, q.l[0], L.h * sl[0]), anN = P(knN, q.l[1], L.s * sl[1]), knF = P(hpF, q.l[2], L.h * sl[2]), anF = P(knF, q.l[3], L.s * sl[3]);
     const fa = q.fa || [], faN = fa[0] != null ? fa[0] : q.l[1] + (front ? 70 : 90), faF = fa[1] != null ? fa[1] : q.l[3] + (front ? -70 : 90);
     return {hip, sh, head, shN, shF, hpN, hpF, elN, haN, elF, haF, knN, anN, knF, anF, toN: P(anN, faN, ft || L.ft), toF: P(anF, faF, ft || L.ft)};
   }
@@ -135,7 +139,8 @@ const FIG = (() => {
   const shift = (J, dx, dy) => { const o = {}; for (const k in J) o[k] = [J[k][0] + dx, J[k][1] + dy]; return o; };
 
   // place a pose in the frame: x from the first frame (so the figure does not drift), y on the ground, pinned, or centred
-  function place(spec, q) {
+  function place(spec, q) { const J = place0(spec, q); return q.ox || q.oy ? shift(J, q.ox || 0, q.oy || 0) : J; }
+  function place0(spec, q) {
     const J = joints(q, spec.view === "front", spec.ft);
     if (!spec._dx) {
       const J0 = joints(spec.frames[0], spec.view === "front", spec.ft), b = bbox(J0);
@@ -179,23 +184,24 @@ const FIG = (() => {
       if (k === "post") { const x = r1(B[ref][0] + (off || 0)); props += `<path class="prop" d="M${x} 8V${GROUND + 1}"/>`; }
       if (k === "wallback") props += `<rect class="backdrop" x="${r1(b0.x0 - 14)}" y="6" width="${r1(b0.x1 - b0.x0 + 28)}" height="${GROUND - 5}" rx="3"/>`;
       if (k === "mat") props += `<rect class="backdrop" x="${r1(b0.x0 - 10)}" y="${r1(b0.y0 - 6)}" width="${r1(b0.x1 - b0.x0 + 20)}" height="${r1(b0.y1 - b0.y0 + 12)}" rx="6"/>`;
+      if (k === "door") { const y = r1(B.haN[1]); props += `<path class="prop wall" d="M8 ${y}H${r1(B.haF[0] - 1)}M${r1(B.haN[0] + 1)} ${y}H152"/>`; }
       if (k === "bar") props += `<path class="prop" d="M40 ${spec.pin[2]}H120"/>`;
-      if (k === "roller") { const m = [J.hip[0] + (J.sh[0] - J.hip[0]) * .6, GROUND - 4]; props += `<circle class="prop" cx="${r1(m[0])}" cy="${r1(m[1])}" r="4.5"/>`; }
-      if (k === "breath") { const m = [J.hip[0] + (J.sh[0] - J.hip[0]) * .6, J.hip[1] + (J.sh[1] - J.hip[1]) * .6]; props += `<circle class="breath" cx="${r1(m[0])}" cy="${r1(m[1])}" r="${r1(4 + 9 * q.b)}" style="opacity:${r1(.15 + .35 * q.b)}"/>`; }
+      if (k === "roller") { const m = [J.hip[0] + (J.sh[0] - J.hip[0]) * .72, GROUND - 4]; props += `<circle class="prop" cx="${r1(m[0])}" cy="${r1(m[1])}" r="4.5"/>`; }
+      if (k === "breath") { const m = [J.hip[0] + (J.sh[0] - J.hip[0]) * .38, J.hip[1] + (J.sh[1] - J.hip[1]) * .38]; props += `<circle class="breath" cx="${r1(m[0])}" cy="${r1(m[1])}" r="${r1(4 + 9 * q.b)}" style="opacity:${r1(.15 + .35 * q.b)}"/>`; }
       if (k === "band") props += `<path class="band" d="M150 ${r1(B.head[1] + 8)}L${pt(J.haN)}"/>`;
       if (k === "bandHands") props += `<path class="band" d="M${pt(J.haF)}L${pt(J.haN)}"/>`;
     }
     // torso as a gentle curve, so the spine can round (c > 0) or arch (c < 0)
     const dx = J.sh[0] - J.hip[0], dy = J.sh[1] - J.hip[1], len = Math.hypot(dx, dy) || 1, c = q.c || 0;
     const ctrl = [(J.hip[0] + J.sh[0]) / 2 + c * dy / len, (J.hip[1] + J.sh[1]) / 2 - c * dx / len];
-    const neckEnd = P(J.sh, q.h, L.n - R);
+    const neckLen = L.n * (q.sn != null ? q.sn : 1) - R, neckEnd = neckLen > 0 ? P(J.sh, q.h, neckLen) : J.sh;
     const limb = (s, e, h, f) => `M${pt(s)}L${pt(e)}L${pt(h)}` + (f ? `L${pt(f)}` : "");
     const far = limb(J.shF, J.elF, J.haF) + limb(J.hpF, J.knF, J.anF, J.toF);
     let body = `M${pt(J.hip)}Q${pt(ctrl)} ${pt(J.sh)}M${pt(J.sh)}L${pt(neckEnd)}` + limb(J.shN, J.elN, J.haN) + limb(J.hpN, J.knN, J.anN, J.toN);
     if (front) body += `M${pt(J.shF)}L${pt(J.shN)}M${pt(J.hpF)}L${pt(J.hpN)}`;
     let eyes = "";
     if (!spec.noEye) {
-      if (front) { const o = (q.hy || 0) * 3.6; eyes = [-2.3, 2.3].map(e => `<circle class="eye" cx="${r1(J.head[0] + e + o)}" cy="${r1(J.head[1] - .5)}" r=".9"/>`).join(""); }
+      if (front) { const o = (q.hy || 0) * 4.4; eyes = [-2.3, 2.3].map(e => `<circle class="eye" cx="${r1(J.head[0] + e + o)}" cy="${r1(J.head[1] - .5)}" r=".9"/>`).join(""); }
       else { const e = P(J.head, q.hf != null ? q.hf : q.h - 90, 3); eyes = `<circle class="eye" cx="${r1(e[0])}" cy="${r1(e[1])}" r=".9"/>`; }
     }
     return props + `<path class="limb far${front ? " front" : ""}" d="${far}"/><path class="limb" d="${body}"/><circle class="head" cx="${r1(J.head[0])}" cy="${r1(J.head[1])}" r="${R}"/>` + eyes;
@@ -220,5 +226,6 @@ const FIG = (() => {
     raf = requestAnimationFrame(frame);
   }
   const start = () => { if (!raf && !reduce()) raf = requestAnimationFrame(frame); };
-  return {markup, start, has: id => !!SPECS[id], ids: () => Object.keys(SPECS), svgAt: (id, t) => svg(SPECS[id], poseAt(SPECS[id], t))};
+  return {markup, start, has: id => !!SPECS[id], ids: () => Object.keys(SPECS), svgAt: (id, t) => svg(SPECS[id], poseAt(SPECS[id], t)),
+    keys: id => SPECS[id].frames.map(f => svg(SPECS[id], f)), box: id => (SPECS[id].box || [0, 0, W, H]).join(" ")};
 })();
