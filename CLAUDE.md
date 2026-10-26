@@ -18,6 +18,8 @@ gitignored), which is loaded into the app on each device and synced encrypted. N
 | `app/assets/` | Icons, `manifest.webmanifest` (`@APP_NAME@`/`@APP_SHORT@` placeholders), `sw.js` (offline cache). |
 | `app/build.py` | `python app/build.py` → `app/build/site/` (the PWA) and `app/build/claude-artifact.html` (claude.ai version). `APP_NAME`/`APP_SHORT` at the top set the display name. |
 | `.github/workflows/deploy.yml` | On push to `main`: runs the build, deploys `app/build/site` to Pages. |
+| `README.md` | Public summary of the app for the GitHub homepage. No setup steps or commands there. Screenshots in `docs/`. |
+| `private/GUIDE.md` | The user's step-by-step guide (install, profile, sync, editing). **Gitignored.** Keep it current when flows change. |
 | `private/profile.json` | The user's personal profile (format below). **Gitignored.** Seeded from the original personal texts. |
 | `research/` | Reports and notes behind the routine. **Gitignored: personal health information.** |
 | `archive/` | Original claude.ai export zip. Gitignored. |
