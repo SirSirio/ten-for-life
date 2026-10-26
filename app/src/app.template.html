@@ -27,6 +27,7 @@
 
 <script>
 /*@EXERCISES@*/
+/*@FIGURES@*/
 /*@VIDEOS@*/
 const EXMAP = Object.fromEntries(EX.map(e=>[e.id,e]));
 for(const e of EX){ const v=(typeof VIDEOS!=="undefined")&&VIDEOS[e.id]; if(v&&v.videoId){ e.video={id:v.videoId,title:v.title||e.name,channel:v.channel||""}; } }
@@ -126,7 +127,8 @@ async function connect(){
 }
 const clone = x => x==null ? x : JSON.parse(JSON.stringify(x)); // db snapshots are frozen; always work on a copy
 // per date, the entry with more exercises done wins; on a tie, b wins
-const pickDays = (a={},b={}) => { const o=Object.assign({},a); for(const k in b){ const x=o[k], y=b[k]; o[k] = (x&&y&&(x.done||[]).length>(y.done||[]).length) ? x : y; } return o; };
+const doneScore = e => (e.done||[]).length + (e.hist||[]).reduce((n,r)=>n+(r.done||[]).length,0);
+const pickDays = (a={},b={}) => { const o=Object.assign({},a); for(const k in b){ const x=o[k], y=b[k]; o[k] = (x&&y&&doneScore(x)>doneScore(y)) ? x : y; } return o; };
 function mergeLog(a,b){ a=a||defaultLog(); b=b||defaultLog(); return {days:pickDays(a.days,b.days),weeks:Object.assign({},a.weeks,b.weeks),posture:pickDays(a.posture,b.posture)}; }
 
 /* ---- Personal profile: your own texts layered over the generic library.
@@ -409,10 +411,26 @@ function finishSession(){
   run={kind,finished:true,done:e.done.length,secs:e.secs}; render();
 }
 function commitDay(e,d,kind="main"){
-  const first = !e.counted;
+  const first = !e.counted, roundCounted = e.rc!==undefined ? e.rc : !!e.counted;
   for(const id of e.done){ state.lastDone[id]=d; }
-  if(first && e.done.length){ e.counted=true; if(kind==="posture") state.postureSessions=(state.postureSessions||0)+1; else state.sessions+=1; for(const id of e.done) state.counts[id]=(state.counts[id]||0)+1; }
+  if(!roundCounted && e.done.length){ e.rc=true; for(const id of e.done) state.counts[id]=(state.counts[id]||0)+1; }
+  // only the first session of a day moves the unlock clock; extra rounds still count per exercise
+  if(first && e.done.length){ e.counted=true; if(kind==="posture") state.postureSessions=(state.postureSessions||0)+1; else state.sessions+=1; }
   saveLog(d); saveState(); if(kind==="main") maybeOffer(); saveState();
+}
+// "Again": file the finished round away and plan a fresh one, with free choice of length
+function newRound(kind){
+  const e= kind==="posture" ? postureEntry(true) : todayEntry(true);
+  e.hist=[...(e.hist||[]),{tier:e.tier,plan:e.plan,done:e.done,skipped:e.skipped,secs:e.secs,feel:e.feel}];
+  e.plan= kind==="posture" ? buildPosturePlan(e.tier) : buildPlan(e.tier,todayStr());
+  e.done=[]; e.skipped=[]; e.secs=0; e.rc=false; delete e.feel;
+  saveLog(todayStr()); render(); window.scrollTo(0,0);
+}
+const roundNo = e => (e.hist||[]).length + 1;
+function dayStats(e){   // a whole day across rounds, for history
+  if(!e) return {did:0,tier:0,secs:0};
+  const rs=[...(e.hist||[]),e].filter(r=>r.done&&r.done.length);
+  return {did:rs.length, tier:rs.reduce((m,r)=>Math.max(m,r.tier||0),0), secs:rs.reduce((n,r)=>n+(r.secs||0),0)};
 }
 function quickLog(kind="main"){
   const e= kind==="posture" ? postureEntry(true) : todayEntry(true); const d=todayStr();
@@ -450,17 +468,20 @@ function render(){
     v.innerHTML=`<section class="card stack"><span class="eyebrow">Something went wrong</span><p class="small">${esc(err.message||String(err))}</p><p class="small muted">Your log is kept. Reloading usually fixes it; if not, Settings → Copy export keeps a copy you can send.</p><div class="row"><button class="btn primary" data-act="reload">Reload</button><button class="btn" data-goto="settings">Settings</button></div></section>`;
   }
   bind();
+  FIG.start();
 }
 
 function viewToday(){
   const e=todayEntry(true);
   maybeOffer();
-  const tier=e.tier; const plan=e.plan; const doneToday=e.done.length>0;
+  const tier=e.tier; const plan=e.plan; const doneToday=e.done.length>0, n=roundNo(e);
   const week=state.sessions<4 ? "Week 1: the floor" : "";
+  const label = n>1 ? `Session ${n} today` : (week||"Today");
+  const title = doneToday ? (n>1?`Session ${n} done`:"Done for today") : (n>1?"Another round":"Your routine");
   let html="";
   if(state.sessions===0 && !doneToday){
     html+=`<section class="card flat stack"><span class="eyebrow">How this works</span>
-      <p class="small muted">Four things, five minutes, once you are up and moving. Every few sessions one new exercise is offered and you decide. The routine rotates on its own; the shorter version always beats skipping.</p></section>`;
+      <p class="small muted">Short daily sessions. Every few sessions a new exercise is offered; you decide.</p></section>`;
   }
   if(state.offered){
     const ex=EXMAP[state.offered.id];
@@ -475,7 +496,7 @@ function viewToday(){
   }
   html+=`<section class="card stack">
     <div class="row between">
-      <div><span class="eyebrow">${week||"Today"}</span><h2>${doneToday?"Done for today":"Your routine"}</h2></div>
+      <div><span class="eyebrow">${label}</span><h2>${title}</h2></div>
       <div class="seg" role="group" aria-label="Length">${[5,10,15].map(t=>`<button data-tier="${t}" aria-pressed="${t===tier}">${t}′</button>`).join("")}</div>
     </div>
     <div class="plan">${plan.map((id,i)=>{ const ex=EXMAP[id]; const dn=e.done.includes(id); return `<div class="item ${dn?"done":""}">
@@ -485,13 +506,13 @@ function viewToday(){
       </div>`;}).join("")}</div>
     ${plan.length? `<div class="row between"><span class="small muted mono">${fmt(planSecs(plan,tier))} total</span><span class="small muted">${state.settings.travel?"Travel mode":""}</span></div>`:`<p class="muted">Nothing fits the current equipment. Check Settings.</p>`}
     ${doneToday? `<div class="stack"><span class="small muted">How did it feel?</span><div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div></div>`:""}
-    <div class="row actions"><button class="btn ${doneToday?"":"primary"}" data-act="${doneToday?"again":"start"}">${doneToday?"Again":"Start"}</button><button class="btn" data-act="${doneToday?"againmanual":"startmanual"}">${doneToday?"Again, no timer":"No timer"}</button></div>
+    <div class="row actions">${doneToday ? `<button class="btn" data-act="again">Again</button>` : `<button class="btn primary" data-act="start">Start</button><button class="btn" data-act="startmanual">No timer</button>`}</div>
   </section>`;
   html+=viewPostureCard();
   html+=viewAnchors();
   if(state.sessions>=12){
     const last=state.benchmarks.length? state.benchmarks[state.benchmarks.length-1].date : null;
-    if(!last || daysBetween(last,todayStr())>=28) html+=`<section class="card flat stack"><span class="eyebrow">Monthly check</span><p class="small">Four numbers, once a month. They tell you whether the routine is doing anything.</p><button class="btn sm" data-goto="history">Record benchmarks</button></section>`;
+    if(!last || daysBetween(last,todayStr())>=28) html+=`<section class="card flat stack"><span class="eyebrow">Monthly check</span><p class="small">Four quick numbers to see whether the routine is working.</p><button class="btn sm" data-goto="history">Record benchmarks</button></section>`;
   }
   const locked=UNLOCK_ORDER.filter(id=>!state.unlocked.includes(id)).length;
   html+=`<p class="small muted" style="text-align:center">${state.unlocked.length} exercises in rotation · ${locked} still to come</p>`;
@@ -499,30 +520,29 @@ function viewToday(){
 }
 
 function viewPostureCard(){
-  const e=postureEntry(true); const tier=e.tier; const done=e.done.length>0;
-  const pd=state.postureSessions||0;
+  const e=postureEntry(true); const tier=e.tier; const done=e.done.length>0, n=roundNo(e);
   return `<section class="card stack posture-card">
     <div class="row between">
-      <div><span class="eyebrow">Posture routine · separate programme</span><h2>${done?"Posture done":"Posture"}</h2></div>
+      <div>${n>1?`<span class="eyebrow">Session ${n} today</span>`:""}<h2>${done?"Posture done":"Posture"}</h2></div>
       <div class="seg" role="group" aria-label="Posture length">${[5,10].map(t=>`<button data-ptier="${t}" aria-pressed="${t===tier}">${t}′</button>`).join("")}</div>
     </div>
-    <p class="small muted">Chin, upper back, chest, then the wall reset. Any time of day; it does not count toward the morning routine or its unlocks.</p>
     <div class="plan">${e.plan.map((id,i)=>{ const ex=EXMAP[id]; const dn=e.done.includes(id); return `<div class="item ${dn?"done":""}">
         <span class="idx">${String(i+1).padStart(2,"0")}</span>
         <div><div class="name">${esc(ex.name)}</div><div class="meta">${ex.equip.includes("band")?"band":ex.equip.includes("floor")?"floor":"standing"}</div></div>
         <div class="row" style="gap:6px"><span class="secs">${fmt(secsFor(ex,tier))}</span></div>
       </div>`;}).join("")}</div>
-    <div class="row between"><span class="small muted mono">${fmt(planSecs(e.plan,tier))} total</span><span class="small muted">${pd} posture session${pd===1?"":"s"} so far</span></div>
+    <span class="small muted mono">${fmt(planSecs(e.plan,tier))} total</span>
     ${done? `<div class="stack"><span class="small muted">How did it feel?</span><div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" data-kind="posture" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div></div>`:""}
-    <div class="row actions"><button class="btn ${done?"":"primary"}" data-act="${done?"pagain":"pstart"}">${done?"Again":"Start"}</button><button class="btn" data-act="${done?"pagainmanual":"pstartmanual"}">${done?"Again, no timer":"No timer"}</button></div>
+    <div class="row actions">${done ? `<button class="btn" data-act="pagain">Again</button>` : `<button class="btn primary" data-act="pstart">Start</button><button class="btn" data-act="pstartmanual">No timer</button>`}</div>
   </section>`;
 }
 function viewAnchors(){
-  if(state.sessions<8) return `<section class="card flat"><span class="eyebrow">Weekly anchors</span><p class="small muted">Unlocks after 8 sessions. The morning routine is the habit; the week is where the big longevity effects live.</p></section>`;
+  if(state.sessions<8) return `<section class="card flat"><p class="small muted">Weekly goals unlock after 8 sessions.</p></section>`;
   const wk=isoWeek(); const L=logFor(todayStr()); const w=L.weeks[wk]||{};
-  return `<section class="card stack"><div class="row between"><div><span class="eyebrow">Weekly anchors · ${wk}</span><h3>This week</h3></div></div>
-    ${ANCHORS.map(a=>{ const n=w[a.id]||0; return `<div class="toggle" style="align-items:flex-start"><div><div style="font-weight:500">${esc(a.name)} <span class="small muted mono">${n}/${a.target}</span></div><div class="small muted">${esc(a.why)}</div></div>
+  return `<section class="card stack"><h3>This week</h3>
+    ${ANCHORS.map(a=>{ const n=w[a.id]||0; return `<div class="toggle"><div style="font-weight:500">${esc(a.name)} <span class="small muted mono">${n}/${a.target}</span></div>
       <div class="counter"><button data-anchor="${a.id}" data-delta="-1" aria-label="less">−</button><b>${n}</b><button data-anchor="${a.id}" data-delta="1" aria-label="more">+</button></div></div>`;}).join("")}
+    <details class="more"><summary>Why these</summary><div class="guide">${ANCHORS.map(a=>`<p><b>${esc(a.name)}.</b> ${esc(a.why)}</p>`).join("")}</div></details>
   </section>`;
 }
 
@@ -533,6 +553,7 @@ function viewRunner(){
   return `<section class="card runner">
     <div class="row between"><span class="eyebrow">${run.kind==="posture"?"Posture · ":""}${run.i+1} of ${e.plan.length} · ${SLOT_NAMES[ex.slot]}</span><button class="btn ghost sm" data-act="cancel">End</button></div>
     <h2>${esc(ex.name)}</h2>
+    ${FIG.markup(ex.id,"Animation: "+esc(ex.name))}
     ${run.manual
       ? `<div class="big manual">${fmt(tot)} <span class="small muted" style="font-family:var(--body)">suggested</span></div><div class="bar"><i style="width:${100*run.i/e.plan.length}%"></i></div>`
       : `<div class="big" id="clock">${fmt(run.left)}</div><div class="bar"><i id="bar" style="width:${100*(tot-run.left)/tot}%"></i></div>`}
@@ -548,7 +569,7 @@ function viewRunner(){
 function viewFinished(){
   const e=curEntry(); const posture=run.kind==="posture";
   return `<section class="card stack">
-    <span class="eyebrow">${posture?"Posture session "+(state.postureSessions||0):"Session "+state.sessions}</span><h2>Done.</h2>
+    <span class="eyebrow">${roundNo(e)>1 ? `${posture?"Posture · ":""}Session ${roundNo(e)} today` : posture ? "Posture" : "Session "+state.sessions}</span><h2>Done.</h2>
     <p class="small muted">${e.done.length} of ${e.plan.length} exercises · ${fmt(e.secs)}${e.skipped.length?` · skipped ${e.skipped.map(id=>EXMAP[id].name).join(", ")}`:""}</p>
     <span class="small muted">How did it feel?</span>
     <div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" data-kind="${run.kind}" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div>
@@ -559,8 +580,8 @@ function viewFinished(){
 function viewHistory(){
   const t=todayStr(); const cells=[]; const days=98;
   let last30=0, total=0, secs30=0, p30=0;
-  for(let i=days-1;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const ds=todayStr(d); const L=logFor(ds); const e=L.days[ds]; const pe=L.posture[ds]; const did=e&&e.done&&e.done.length; const pdid=pe&&pe.done&&pe.done.length; if(did&&i<30){last30++; secs30+=e.secs||0;} if(pdid&&i<30) p30++; cells.push(`<i class="${did?"t"+e.tier:""}${pdid?" p":""}${ds===t?" today":""}" title="${ds}${did?" · "+e.tier+" min":""}${pdid?" · posture "+pe.tier+" min":""}"></i>`); }
-  for(const y of Object.keys(logs)) for(const ds in logs[y].days){ const e=logs[y].days[ds]; if(e.done&&e.done.length) total++; }
+  for(let i=days-1;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); const ds=todayStr(d); const L=logFor(ds); const m=dayStats(L.days[ds]), pm=dayStats(L.posture[ds]); const did=m.did, pdid=pm.did; if(did&&i<30){last30+=did; secs30+=m.secs;} if(pdid&&i<30) p30+=pdid; cells.push(`<i class="${did?"t"+m.tier:""}${pdid?" p":""}${ds===t?" today":""}" title="${ds}${did?" · "+m.tier+" min"+(did>1?" ×"+did:""):""}${pdid?" · posture "+pm.tier+" min":""}"></i>`); }
+  for(const y of Object.keys(logs)) for(const ds in logs[y].days) total+=dayStats(logs[y].days[ds]).did;
   const started=daysBetween(state.created,t);
   const ex=Object.entries(state.counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
   let html=`<section class="card stack"><span class="eyebrow">Last 14 weeks</span><div class="heat">${cells.join("")}</div>
@@ -600,7 +621,7 @@ function viewLibrary(){
 }
 function exDetails(ex){
   return `<details class="ex"><summary><span>${esc(ex.name)}</span><span class="row" style="gap:6px"><span class="small muted mono">${state.counts[ex.id]||0}×</span>${gradeChip(ex.grade)}</span></summary>
-    <div class="body"><p class="small muted">${SLOT_NAMES[ex.slot]} · ${fmt(secsFor(ex,15))}${ex.equip.length?" · needs "+ex.equip.join(", "):""}</p>${exGuide(ex,"lib")}</div></details>`;
+    <div class="body">${FIG.markup(ex.id,"Animation: "+esc(ex.name))}<p class="small muted">${SLOT_NAMES[ex.slot]} · ${fmt(secsFor(ex,15))}${ex.equip.length?" · needs "+ex.equip.join(", "):""}</p>${exGuide(ex,"lib")}</div></details>`;
 }
 
 /* Structured guide: mini table of contents, then Why / Protects / How / Pitfalls / Evidence / Video. `ctx` keeps ids unique per place. */
@@ -706,13 +727,13 @@ function bind(){
   v.onchange = ev => { if(ev.target.id==="pfile" && ev.target.files[0]) ev.target.files[0].text().then(loadProfileText); };
   v.onclick = ev => {
     const b=ev.target.closest("button,a,summary"); if(!b) return;
-    if(b.tagName==="SUMMARY"){ const d=b.parentElement; if(d.classList.contains("more")&&run){ setTimeout(()=>{run.more=d.open;},0);} return; }
+    if(b.tagName==="SUMMARY"){ setTimeout(FIG.start,30); const d=b.parentElement; if(d.classList.contains("more")&&run){ setTimeout(()=>{run.more=d.open;},0);} return; }
     if(b.dataset.jump){ jumpTo(b.dataset.jump); return; }
     if(b.dataset.play){ playVideo(b.dataset.play); return; }
-    if(b.dataset.tier){ const t=+b.dataset.tier; const e=todayEntry(true); if(e.done.length){ toast("Already logged today; change it tomorrow"); return; } replan(t); render(); return; }
+    if(b.dataset.tier){ const t=+b.dataset.tier; const e=todayEntry(true); if(e.done.length){ toast("Press Again to plan another session"); return; } replan(t); render(); return; }
     if(b.dataset.swap!==undefined){ swapItem(+b.dataset.swap); return; }
     if(b.dataset.feel){ setFeel(b.dataset.feel,b.dataset.kind||"main"); return; }
-    if(b.dataset.ptier){ const t=+b.dataset.ptier; const e=postureEntry(true); if(e.done.length){ toast("Already logged today; change it tomorrow"); return; } replanPosture(t); render(); return; }
+    if(b.dataset.ptier){ const t=+b.dataset.ptier; const e=postureEntry(true); if(e.done.length){ toast("Press Again to plan another session"); return; } replanPosture(t); render(); return; }
     if(b.dataset.goto){ tab=b.dataset.goto; render(); return; }
     if(b.dataset.anchor){ const wk=isoWeek(); const L=logFor(todayStr()); const w=L.weeks[wk]||(L.weeks[wk]={}); w[b.dataset.anchor]=Math.max(0,(w[b.dataset.anchor]||0)+(+b.dataset.delta)); saveLog(todayStr()); render(); return; }
     if(b.dataset.savenote){ const id=b.dataset.savenote, t=$("#note_"+id).value.trim(); if(t) profile.notes[id]=t; else delete profile.notes[id]; saveProfile(); toast(t?"Note saved":"Note removed"); return; }
@@ -725,13 +746,11 @@ function bind(){
     switch(b.dataset.act){
       case "start": startSession("main"); break;
       case "startmanual": startSession("main",true); break;
-      case "again": { const e=todayEntry(true); e.counted=true; startSession("main"); break; }
-      case "againmanual": { const e=todayEntry(true); e.counted=true; startSession("main",true); break; }
+      case "again": newRound("main"); break;
       case "pstart": startSession("posture"); break;
       case "pstartmanual": startSession("posture",true); break;
-      case "pagainmanual": { const e=postureEntry(true); e.counted=true; startSession("posture",true); break; }
 
-      case "pagain": { const e=postureEntry(true); e.counted=true; startSession("posture"); break; }
+      case "pagain": newRound("posture"); break;
       case "accept": acceptOffer(); break;
       case "snooze": snoozeOffer(); break;
       case "pause": run.paused=!run.paused; render(); break;

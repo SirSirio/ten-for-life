@@ -5,7 +5,7 @@
                                                    viewport, manifest, icons, offline service worker)
                     -> build/claude-artifact.html  (claude.ai artifact: no <head>, the viewer adds it)
 
-Sources: src/ (app.template.html, style.css, exercises.js), data/videos*.json, assets/.
+Sources: src/ (app.template.html, style.css, exercises.js, figures.js), data/videos*.json, assets/.
 """
 import hashlib, json, os, re, shutil
 
@@ -31,6 +31,7 @@ for name in ('videos.json', 'videos_posture.json'):
 
 page = (tpl.replace('/*@STYLE@*/', css)
            .replace('/*@EXERCISES@*/', ex)
+           .replace('/*@FIGURES@*/', rd('src', 'figures.js'))
            .replace('/*@VIDEOS@*/', 'const VIDEOS=' + json.dumps(videos, ensure_ascii=False) + ';')
            .replace('@APP_NAME@', APP_NAME))
 

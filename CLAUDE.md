@@ -14,6 +14,7 @@ gitignored), which is loaded into the app on each device and synced encrypted. N
 | `app/src/app.template.html` | Markup and all logic (one inline `<script>`). Placeholders `/*@STYLE@*/`, `/*@EXERCISES@*/`, `/*@VIDEOS@*/`, `@APP_NAME@`. |
 | `app/src/style.css` | All styles. Palette "first light": dark is the default on `:root`; light under `[data-theme=light]` and `[data-theme=system]` + `prefers-color-scheme: light`. Fonts Geist / Geist Mono; tab icons Phosphor light. |
 | `app/src/exercises.js` | The exercise library: `const EX = [...]`. Each entry: `id, name, slot, secs, equip, grade, search, why, protects[], steps[], pitfalls[], evidence`. |
+| `app/src/figures.js` | Animated stick figure per exercise (`FIG`): one rig, absolute joint angles, key poses + timing per exercise id, props (wall, bar, band, roller, breath). Injected at `/*@FIGURES@*/`. Shown under the name in the runner and atop each Library entry; still image under reduced motion. Every exercise id needs a spec. |
 | `app/data/videos*.json` | Verified YouTube ids per exercise id (oEmbed-checked). |
 | `app/assets/` | Icons, `manifest.webmanifest` (`@APP_NAME@`/`@APP_SHORT@` placeholders), `sw.js` (offline cache). |
 | `app/build.py` | `python app/build.py` → `app/build/site/` (the PWA) and `app/build/claude-artifact.html` (claude.ai version). `APP_NAME`/`APP_SHORT` at the top set the display name. |
@@ -39,7 +40,7 @@ there is no version to bump.
 ## Data and sync
 
 - `localStorage` keys: `mr:state` (settings, unlocks, counters; `state.updated` = ms timestamp of the last local save), `mr:log-YYYY` (`{days:{date:entry}, weeks:{isoWeek:anchors}, posture:{date:entry}}`), `mr:profile`, `mr:gist` (`{token, pass, id, salt, base}`).
-- Entry: `{tier, plan:[ids], done:[ids], skipped:[ids], secs, feel, counted}`.
+- Entry: `{tier, plan:[ids], done:[ids], skipped:[ids], secs, feel, counted, rc, hist:[earlier rounds]}`. Several sessions a day: "Again" (`newRound`) files the finished round into `hist` and plans a fresh one with free choice of length; `dayStats()` sums rounds for history. Only the first round of a day advances `state.sessions` (the unlock clock); `rc` marks whether the current round was added to per-exercise `counts`.
 - These keys and the gist filename `morning-reserve.json` are storage identifiers: **do not rename them** when the app is renamed, or existing data is orphaned.
 - **Profile**: `{v, updated, postureNote, notes:{exId:text}, anchors:{anchorId:why}, exercises:{exId:{why,protects,steps,pitfalls,evidence}}}`. `cleanProfile()` validates (drops malformed fields), `applyProfile()` overlays it onto `EX`/`ANCHORS` from the pristine copies `EX_BASE`/`ANCHOR_BASE`, `saveProfile()` stamps `updated` and schedules a sync. Notes are edited in Library (`data-savenote`), bulk edits via Settings → Personal profile (load file / download / edit as text). Not sent to the claude.ai database.
 - **Encryption**: the gist file holds `{enc, salt, iv, ct}`: AES-GCM-256, key from the passphrase via PBKDF2-SHA256 (310k iterations), salt per gist (adopted from the gist if another device created it), fresh IV per write. `seal()`/`unseal()`; a wrong passphrase surfaces as `Error("passphrase")`. A plaintext gist (older format) is still read once, then rewritten encrypted.

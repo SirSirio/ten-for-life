@@ -116,8 +116,8 @@ nav.tabs svg{width:24px;height:24px;fill:currentColor}
 
 /* session runner */
 .runner{display:flex;flex-direction:column;gap:18px;padding-block:14px}
-.runner .big{font-family:var(--mono);font-size:88px;line-height:1;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-.03em;text-align:center;padding-block:10px}
-.runner .big.manual{font-family:var(--display);font-weight:600;font-size:40px;letter-spacing:-.01em}
+.runner .big{font-family:var(--mono);font-size:52px;line-height:1;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-.03em;text-align:center;padding-block:10px}
+.runner .big.manual{font-family:var(--display);font-weight:600;font-size:32px;letter-spacing:-.01em}
 .runner .bar{height:3px;background:var(--surface-2);border-radius:2px;overflow:hidden}
 .runner .bar i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s linear}
 @media (prefers-reduced-motion: reduce){.runner .bar i{transition:none}}
@@ -203,3 +203,18 @@ textarea.short{min-height:72px}
 .sync.on i{background:var(--accent)}
 .note{font-size:14px;color:var(--muted);border-left:2px solid color-mix(in srgb,var(--accent) 45%,var(--line));padding-left:12px}
 .hidden{display:none!important}
+
+/* exercise figures (figures.js): stroke-drawn, theme-aware */
+.fig{display:block;width:100%;max-width:260px;height:auto;margin:0 auto;overflow:hidden}
+.runner .fig{max-height:200px}
+.lib .ex .body .fig{max-width:200px}
+.fig .limb{fill:none;stroke:var(--fg);stroke-width:4.5px;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+.fig .far{opacity:.38}
+.fig .far.front{opacity:1}
+.fig .head{fill:var(--bg);stroke:var(--fg);stroke-width:4.5px;vector-effect:non-scaling-stroke}
+.fig .eye{fill:var(--fg)}
+.fig .ground{stroke:var(--line);stroke-width:2px;vector-effect:non-scaling-stroke}
+.fig .prop{fill:none;stroke:var(--muted);stroke-width:3px;stroke-linecap:round;opacity:.6;vector-effect:non-scaling-stroke}
+.fig .backdrop{fill:var(--surface-2)}
+.fig .band{fill:none;stroke:var(--accent);stroke-width:2.5px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.fig .breath{fill:var(--accent)}
