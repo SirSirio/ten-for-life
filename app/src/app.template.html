@@ -34,15 +34,17 @@ for(const e of EX){ const v=(typeof VIDEOS!=="undefined")&&VIDEOS[e.id]; if(v&&v
 // Inline players are blocked inside the claude.ai artifact viewer; they work when this same file is hosted elsewhere (e.g. GitHub Pages).
 const CAN_EMBED = !(window.claude && window.claude.use) && !/claude\.ai$|claudeusercontent|anthropic/.test(location.hostname) && location.protocol!=="about:";
 const CORE = ["breath_slow","catcamel","birddog","sideplank"];
-const UNLOCK_ORDER = ["chin_tuck","tspine_ext","balance","doorway","sitrise","ytw","hang","posture_wall","hip9090","wall_slide","hipflexor","calfraise","glute_bridge","armswing","bdj1","facepull","zhan","splitsquat","wrist","tib","bdj2","wgs","shoulderCARs","squat_hold","owl","hollow","bdj_full","ankleCARs","band_pull","breath_sigh","yoga_flow","gmb_daily","pogo"];
-const POSTURE = ["chin_tuck","tspine_ext","doorway","ytw","posture_wall","wall_slide","glute_bridge","facepull","band_pull"];
+// Two programmes. The morning routine is the body: it starts from CORE and unlocks UNLOCK_ORDER one at a time.
+// The posture programme (neck, shoulders, upper back) is its own set, all available from the start.
+const UNLOCK_ORDER = ["balance","sitrise","hang","hip9090","hipflexor","calfraise","glute_bridge","armswing","bdj1","zhan","splitsquat","wrist","tib","bdj2","wgs","shoulderCARs","squat_hold","owl","hollow","bdj_full","ankleCARs","breath_sigh","yoga_flow","gmb_daily","pogo"];
+const POSTURE = ["chin_tuck","tspine_ext","doorway","ytw","posture_wall","wall_slide","facepull","band_pull"];
 const SLOT_ORDER = {
   5:["breath","spine","core","core"],
-  10:["breath","spine","core","core","posture","shoulders","hips","balance","floor","legs","mind"],
-  15:["breath","spine","core","core","posture","shoulders","wrists","hips","legs","balance","floor","mind"]
+  10:["breath","spine","core","core","shoulders","hips","balance","floor","legs","mind"],
+  15:["breath","spine","core","core","shoulders","wrists","hips","legs","balance","floor","mind"]
 };
 const SLOT_NAMES = {breath:"Breath",spine:"Spine",balance:"Balance",floor:"Floor",shoulders:"Shoulders",posture:"Posture",hips:"Hips",legs:"Legs & feet",core:"Trunk",wrists:"Wrists",mind:"Standing & qigong",video:"Follow-along"};
-const PACE = {slow:{sessions:7,days:7},normal:{sessions:4,days:5},fast:{sessions:2,days:2}};
+const PACE = {slow:{sessions:10},normal:{sessions:7},fast:{sessions:4}};   // a new exercise every N counted sessions (the first of each day)
 const ANCHORS = [
  {id:"strength",name:"Strength session",target:2,why:"30–60 min/week of lifting is where the mortality curve bends (Momma 2022). Two sessions covers it, and it is also how you bank muscle and bone."},
  {id:"hard",name:"Hard cardio (intervals)",target:1,why:"Fitness is one of the strongest predictors of lifespan. Intervals raise VO2max more than steady work for the same time (Helgerud 2007)."},
@@ -63,9 +65,9 @@ const daysBetween = (a,b) => Math.round((new Date(b+"T12:00")-new Date(a+"T12:00
 const isoWeek = (d=new Date()) => { const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y=t.getUTCFullYear(); const w=Math.ceil(((t-Date.UTC(y,0,1))/864e5+1)/7); return y+"-W"+String(w).padStart(2,"0"); };
 
 const defaultState = () => ({v:1,created:todayStr(),
-  settings:{equip:{bar:true,band:true,floor:true,step:false},travel:false,pace:"normal",sound:true,pauseUnlocks:false,postureFocus:false,tier:10,postureTier:5,theme:"dark"},
+  settings:{equip:{bar:true,band:true,floor:true,step:false},travel:false,pace:"normal",sound:true,pauseUnlocks:false,tier:10,postureTier:5,theme:"dark"},
   unlocked:[...CORE],offered:null,snoozed:{},lastUnlock:{date:todayStr(),sessionsAt:0},
-  sessions:0,postureSessions:0,lastDone:{},counts:{},benchmarks:[],peek:false});
+  sessions:0,postureSessions:0,lastDone:{},counts:{},benchmarks:[],peek:false,excluded:[],pinned:[]});
 const defaultLog = () => ({days:{},weeks:{},posture:{}});
 
 let state = defaultState();
@@ -251,7 +253,8 @@ function equipOK(ex){
   const eq=state.settings.equip, travel=state.settings.travel;
   return ex.equip.every(k => k==="floor" ? eq.floor : (!travel && eq[k]));
 }
-function available(){ return state.unlocked.filter(id=>EXMAP[id] && equipOK(EXMAP[id])); }
+function available(){ return state.unlocked.filter(id=>EXMAP[id] && EXMAP[id].slot!=="posture" && !state.excluded.includes(id) && equipOK(EXMAP[id])); }
+const inRotation = () => state.unlocked.filter(id=>EXMAP[id] && EXMAP[id].slot!=="posture" && !state.excluded.includes(id));
 function secsFor(ex,tier){ return typeof ex.secs==="object" ? ex.secs[tier] : ex.secs; }
 function lastDoneKey(id){ return state.lastDone[id] || "0000-00-00"; }
 
@@ -259,37 +262,58 @@ function buildPlan(tier, dateStr){
   const avail = available();
   const budget = tier*60;
   const plan=[]; let total=0;
+  const pinned = id => state.pinned.includes(id);
   const pick = slot => {
     const c = avail.filter(id=>EXMAP[id].slot===slot && !plan.includes(id));
     if(!c.length) return null;
-    c.sort((a,b)=> lastDoneKey(a).localeCompare(lastDoneKey(b)) || UNLOCK_ORDER.indexOf(a)-UNLOCK_ORDER.indexOf(b));
+    // favourites first, then whatever was done longest ago
+    c.sort((a,b)=> (pinned(b)-pinned(a)) || lastDoneKey(a).localeCompare(lastDoneKey(b)) || UNLOCK_ORDER.indexOf(a)-UNLOCK_ORDER.indexOf(b));
     return c[0];
   };
-  // follow-along day: every 4th session at 10 or 15 min, once a video is unlocked
-  const videos = avail.filter(id=>EXMAP[id].slot==="video");
+  const add = slot => { const id=pick(slot); if(!id) return false; const s=secsFor(EXMAP[id],tier); if(total+s > budget) return false; plan.push(id); total+=s; return true; };
+  // follow-along day: every 4th session at 10 or 15 min, with a video short enough to leave room for breath and trunk
+  const videos = avail.filter(id=>EXMAP[id].slot==="video" && secsFor(EXMAP[id],tier) <= budget-120);
   if(tier>=10 && videos.length && state.sessions>0 && state.sessions%4===3){
     videos.sort((a,b)=>lastDoneKey(a).localeCompare(lastDoneKey(b)));
-    const b=pick("breath"); if(b){plan.push(b);}
-    const c1=pick("core"); if(c1) plan.push(c1);
-    plan.push(videos[0]);
-    if(tier===15){ const bal=pick("balance"); if(bal) plan.push(bal); const fl=pick("floor"); if(fl) plan.push(fl); }
-    return plan;
+    add("breath"); add("core");
+    plan.push(videos[0]); total+=secsFor(EXMAP[videos[0]],tier);
   }
-  const add = slot => { const id=pick(slot); if(!id) return false; const s=secsFor(EXMAP[id],tier); if(total+s > budget+30) return false; plan.push(id); total+=s; return true; };
-  const focus = state.settings.postureFocus;
-  // posture focus: a posture item is guaranteed in 10 and 15 (right after the floor), and the 5-minute version gets one too
-  const order = focus ? (tier===5 ? [...SLOT_ORDER[5],"posture"] : ["breath","spine","core","core","posture",...SLOT_ORDER[tier].slice(5)]) : SLOT_ORDER[tier];
-  for(const slot of order) add(slot);
-  // second pass: fill remaining time with a second exercise from the big slots
-  const extra = tier===15 ? (focus?["posture","hips","legs","shoulders","mind","spine","core"]:["hips","legs","posture","shoulders","mind","spine","core"]) : tier===10 ? (focus?["posture","hips"]:["hips","legs"]) : [];
+  for(const slot of SLOT_ORDER[tier]) add(slot);
+  // second pass: a second exercise from the big slots while time is left
+  const extra = tier===15 ? ["hips","legs","shoulders","mind","spine","core"] : tier===10 ? ["hips","legs"] : [];
   for(const slot of extra){ if(total >= budget-45) break; add(slot); }
+  // favourites always come along; fitSecs makes room for them
+  for(const id of avail) if(pinned(id) && !plan.includes(id) && EXMAP[id].slot!=="video") plan.push(id);
   // keep the balance and floor screens last, standing work at the very end
   const tail = plan.filter(id=>["balance","floor","mind"].includes(EXMAP[id].slot));
   const head = plan.filter(id=>!tail.includes(id));
   tail.sort((a,b)=>["balance","floor","mind"].indexOf(EXMAP[a].slot)-["balance","floor","mind"].indexOf(EXMAP[b].slot));
   return [...head,...tail];
 }
-function planSecs(plan,tier){ return plan.reduce((t,id)=>t+secsFor(EXMAP[id],tier),0); }
+// Session length is exact: the planned exercises share the minutes in proportion to their usual time,
+// stretched when few are unlocked and trimmed when a favourite or a new one squeezes in. Videos keep their length.
+function fitSecs(plan,tier){
+  const budget=tier*60, base=plan.map(id=>secsFor(EXMAP[id],tier)), fixed=plan.map(id=>EXMAP[id].slot==="video");
+  // breathing grows to at most twice its usual time; the movement exercises take the rest
+  const cap=plan.map((id,i)=>EXMAP[id].slot==="breath" ? base[i]*2 : Infinity);
+  let room=budget-base.reduce((t,v,i)=>t+(fixed[i]?v:0),0);
+  if(room<=0 || fixed.every(Boolean)) return base;
+  let f=1, capped=[];
+  for(let pass=0; pass<3; pass++){
+    const free=base.reduce((t,v,i)=>t+(fixed[i]||capped.includes(i)?0:v),0), held=capped.reduce((t,i)=>t+cap[i],0);
+    f=free ? (room-held)/free : 1;
+    const over=base.map((v,i)=>i).filter(i=>!fixed[i] && !capped.includes(i) && base[i]*f>cap[i]);
+    if(!over.length) break; capped.push(...over);
+  }
+  const out=base.map((v,i)=>fixed[i]?v:capped.includes(i)?cap[i]:Math.max(30,Math.round(v*f/15)*15));
+  let diff=room-out.reduce((t,v,i)=>t+(fixed[i]?0:v),0);
+  // settle the rounding in 15 s steps, longest exercises first, so the total lands on the minute
+  const order=out.map((v,i)=>i).filter(i=>!fixed[i]).sort((a,b)=>out[b]-out[a]);
+  for(let k=0; diff!==0 && k<400; k++){ const i=order[k%order.length], step=diff>0?15:-15; if(out[i]+step>=30){ out[i]+=step; diff-=step; } }
+  return out;
+}
+function durOf(e,id){ const k=e.plan.indexOf(id); return k<0 ? secsFor(EXMAP[id],e.tier) : fitSecs(e.plan,e.tier)[k]; }
+function planSecs(plan,tier){ return fitSecs(plan,tier).reduce((t,v)=>t+v,0); }
 
 /* Posture programme: a separate 5/10-minute routine built only from the posture set, independent of unlocks. */
 function buildPosturePlan(tier){
@@ -297,7 +321,7 @@ function buildPosturePlan(tier){
   let plan = ["chin_tuck","tspine_ext","doorway"];
   if(tier===10){
     const pulls=["facepull","band_pull","wall_slide"].filter(ok).sort((a,b)=>lastDoneKey(a).localeCompare(lastDoneKey(b)));
-    plan.push("ytw", pulls[0], "glute_bridge", "wall_slide");
+    plan.push("ytw", pulls[0], "wall_slide");
   }
   plan.push("posture_wall");
   return [...new Set(plan.filter(id=>id&&ok(id)))];
@@ -340,12 +364,26 @@ function nextCandidate(){
   }
   return null;
 }
+// one new exercise every N sessions; only the first session of a day counts, so it is never more than one a day
+function unlockInfo(){
+  const every=(PACE[state.settings.pace]||PACE.normal).sessions;
+  const since=Math.max(0,state.sessions-(state.lastUnlock.sessionsAt||0));
+  return {every, done:Math.min(since,every), left:Math.max(0,every-since), queue:UNLOCK_ORDER.filter(id=>!state.unlocked.includes(id)).length};
+}
+const plural = (n,w) => n+" "+w+(n===1?"":"s");
+function unlockTrack(extra){
+  const u=unlockInfo(), full = state.offered || !u.queue;
+  const msg = !u.queue ? "Every exercise is unlocked"
+    : state.settings.pauseUnlocks ? "New exercises paused in Settings"
+    : state.offered ? "A new exercise is waiting for you"
+    : u.left===0 ? "Next exercise needs equipment you have switched off"
+    : `${plural(u.left,"session")} to your next exercise`;
+  const dots=Array.from({length:u.every},(_,i)=>`<i class="${full||i<u.done?"on":""}"></i>`).join("");
+  return `<div class="track"><span class="dots" role="img" aria-label="${full?u.every:u.done} of ${u.every} sessions toward your next exercise">${dots}</span><span class="small">${extra?extra+" ":""}${msg}</span></div>`;
+}
 function maybeOffer(){
   if(state.settings.pauseUnlocks || state.offered) return;
-  const p=PACE[state.settings.pace]||PACE.normal;
-  const sinceSessions = state.sessions - (state.lastUnlock.sessionsAt||0);
-  const sinceDays = daysBetween(state.lastUnlock.date||state.created, todayStr());
-  if(sinceSessions>=p.sessions && sinceDays>=p.days){
+  if(unlockInfo().left===0){
     const id=nextCandidate(); if(id){ state.offered={id,date:todayStr()}; saveState(); }
   }
 }
@@ -374,7 +412,7 @@ function startSession(kind="main",manual=false){
   if(!e.plan.length){ toast("Nothing in the plan for this equipment"); return; }
   if(!manual) beep(1);
   keepAwake();
-  run={kind,manual,i:0,left:secsFor(EXMAP[e.plan[0]],e.tier),timer:null,paused:false,done:[],skipped:[],startedAt:Date.now()};
+  run={kind,manual,i:0,left:durOf(e,e.plan[0]),timer:null,paused:false,done:[],skipped:[],startedAt:Date.now()};
   if(!manual) tick();
   render();
 }
@@ -385,7 +423,7 @@ function tick(){
     run.left-=1;
     const el=document.getElementById("clock"); const bar=document.getElementById("bar");
     if(el) el.textContent=fmt(run.left);
-    if(bar){ const e=curEntry(); const tot=secsFor(EXMAP[e.plan[run.i]],e.tier); bar.style.width=(100*(tot-run.left)/tot)+"%"; }
+    if(bar){ const e=curEntry(); const tot=durOf(e,e.plan[run.i]); bar.style.width=(100*(tot-run.left)/tot)+"%"; }
     if(run.left<=0){ beep(2); advance(true); }
   },1000);
 }
@@ -394,21 +432,23 @@ function advance(done){
   (done?run.done:run.skipped).push(id);
   run.i+=1;
   if(run.i>=e.plan.length){ finishSession(); return; }
-  run.left=secsFor(EXMAP[e.plan[run.i]],e.tier); run.more=false; render();
+  run.left=durOf(e,e.plan[run.i]); run.more=false; render();
 }
 function goBack(){
   if(!run || run.i===0) return;
   const e=curEntry(); run.i-=1; const id=e.plan[run.i];
   run.done=run.done.filter(x=>x!==id); run.skipped=run.skipped.filter(x=>x!==id);
-  run.left=secsFor(EXMAP[id],e.tier); run.more=false; render();
+  run.left=durOf(e,id); run.more=false; render();
 }
 function finishSession(){
   clearInterval(run.timer); releaseWake();
   const e=curEntry(); const d=todayStr(); const kind=run.kind;
   e.done=[...new Set([...e.done,...run.done])]; e.skipped=run.skipped.filter(id=>!e.done.includes(id));
   e.secs=(e.secs||0)+Math.round((Date.now()-run.startedAt)/1000);
+  const hadOffer=!!state.offered, before=state.sessions;
   commitDay(e,d,kind);
-  run={kind,finished:true,done:e.done.length,secs:e.secs}; render();
+  run={kind,finished:true,done:e.done.length,secs:e.secs,unlocked:!hadOffer&&!!state.offered,counted:state.sessions>before};
+  buzz(run.unlocked?[20,60,20]:12); render();
 }
 function commitDay(e,d,kind="main"){
   const first = !e.counted, roundCounted = e.rc!==undefined ? e.rc : !!e.counted;
@@ -424,7 +464,7 @@ function newRound(kind){
   e.hist=[...(e.hist||[]),{tier:e.tier,plan:e.plan,done:e.done,skipped:e.skipped,secs:e.secs,feel:e.feel}];
   e.plan= kind==="posture" ? buildPosturePlan(e.tier) : buildPlan(e.tier,todayStr());
   e.done=[]; e.skipped=[]; e.secs=0; e.rc=false; delete e.feel;
-  saveLog(todayStr()); render(); window.scrollTo(0,0);
+  saveLog(todayStr()); render();
 }
 const roundNo = e => (e.hist||[]).length + 1;
 function dayStats(e){   // a whole day across rounds, for history
@@ -436,6 +476,7 @@ function quickLog(kind="main"){
   const e= kind==="posture" ? postureEntry(true) : todayEntry(true); const d=todayStr();
   e.done=[...e.plan]; e.skipped=[]; e.secs=planSecs(e.plan,e.tier); commitDay(e,d,kind); toast("Logged"); render();
 }
+const buzz = p => { try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
 function cancelSession(){ clearInterval(run.timer); releaseWake(); run=null; render(); }
 function setFeel(v,kind="main"){ const e= kind==="posture" ? postureEntry(true) : todayEntry(true); e.feel=v; saveLog(todayStr()); if(run&&run.finished){ run=null; toast("Saved"); } render(); }
 const fmt = s => { s=Math.max(0,s); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
@@ -452,7 +493,6 @@ function applyTheme(){
   const t=state.settings.theme||"dark"; document.documentElement.dataset.theme=t;
   const m=document.querySelector('meta[name="theme-color"]'); if(m) m.content=getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
 }
-function enter(){ const v=$("#view"); v.classList.add("enter"); clearTimeout(enter.t); enter.t=setTimeout(()=>v.classList.remove("enter"),700); }
 function render(){
   applyTheme();
   const d=new Date();
@@ -467,21 +507,30 @@ function render(){
     console.error(err);
     v.innerHTML=`<section class="card stack"><span class="eyebrow">Something went wrong</span><p class="small">${esc(err.message||String(err))}</p><p class="small muted">Your log is kept. Reloading usually fixes it; if not, Settings → Copy export keeps a copy you can send.</p><div class="row"><button class="btn primary" data-act="reload">Reload</button><button class="btn" data-goto="settings">Settings</button></div></section>`;
   }
+  // the content area is the scroller: start each new view (tab, exercise, finished screen) at its top, never on a timer tick
+  const key = run ? (run.finished ? "done" : "run"+run.i) : tab;
+  if(key!==render.view){ document.querySelector("main").scrollTop=0; render.view=key; }
   bind();
   FIG.start();
 }
 
+// older data can still point at posture work in the morning routine: clear it
+function tidyRoutine(){
+  if(state.offered && (!EXMAP[state.offered.id] || EXMAP[state.offered.id].slot==="posture")) state.offered=null;
+  const e=todayEntry(false); if(e && !e.done.length && e.plan.some(id=>!EXMAP[id] || EXMAP[id].slot==="posture" || state.excluded.includes(id))) replan(e.tier);
+}
 function viewToday(){
+  tidyRoutine();
   const e=todayEntry(true);
   maybeOffer();
   const tier=e.tier; const plan=e.plan; const doneToday=e.done.length>0, n=roundNo(e);
   const week=state.sessions<4 ? "Week 1: the floor" : "";
-  const label = n>1 ? `Session ${n} today` : (week||"Today");
+  const label = n>1 && !doneToday ? `Session ${n} today` : (week||"Today");
   const title = doneToday ? (n>1?`Session ${n} done`:"Done for today") : (n>1?"Another round":"Your routine");
   let html="";
   if(state.sessions===0 && !doneToday){
     html+=`<section class="card flat stack"><span class="eyebrow">How this works</span>
-      <p class="small muted">Short daily sessions. Every few sessions a new exercise is offered; you decide.</p></section>`;
+      <p class="small muted">Short daily sessions. A new exercise every ${unlockInfo().every} sessions; you decide whether it joins.</p></section>`;
   }
   if(state.offered){
     const ex=EXMAP[state.offered.id];
@@ -499,10 +548,11 @@ function viewToday(){
       <div><span class="eyebrow">${label}</span><h2>${title}</h2></div>
       <div class="seg" role="group" aria-label="Length">${[5,10,15].map(t=>`<button data-tier="${t}" aria-pressed="${t===tier}">${t}′</button>`).join("")}</div>
     </div>
+    ${unlockTrack()}
     <div class="plan">${plan.map((id,i)=>{ const ex=EXMAP[id]; const dn=e.done.includes(id); return `<div class="item ${dn?"done":""}">
         <span class="idx">${String(i+1).padStart(2,"0")}</span>
         <div><div class="name">${esc(ex.name)}</div><div class="meta">${SLOT_NAMES[ex.slot]}${ex.equip.includes("bar")?" · bar":""}${ex.equip.includes("band")?" · band":""}</div></div>
-        <div class="row" style="gap:6px"><span class="secs">${fmt(secsFor(ex,tier))}</span>${!doneToday?`<button class="btn ghost sm" data-swap="${i}" title="Swap for another ${SLOT_NAMES[ex.slot].toLowerCase()} exercise">swap</button>`:""}</div>
+        <div class="row" style="gap:6px"><span class="secs">${fmt(durOf(e,id))}</span>${!doneToday?`<button class="btn ghost sm" data-swap="${i}" title="Swap for another ${SLOT_NAMES[ex.slot].toLowerCase()} exercise">swap</button>`:""}</div>
       </div>`;}).join("")}</div>
     ${plan.length? `<div class="row between"><span class="small muted mono">${fmt(planSecs(plan,tier))} total</span><span class="small muted">${state.settings.travel?"Travel mode":""}</span></div>`:`<p class="muted">Nothing fits the current equipment. Check Settings.</p>`}
     ${doneToday? `<div class="stack"><span class="small muted">How did it feel?</span><div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div></div>`:""}
@@ -529,7 +579,7 @@ function viewPostureCard(){
     <div class="plan">${e.plan.map((id,i)=>{ const ex=EXMAP[id]; const dn=e.done.includes(id); return `<div class="item ${dn?"done":""}">
         <span class="idx">${String(i+1).padStart(2,"0")}</span>
         <div><div class="name">${esc(ex.name)}</div><div class="meta">${ex.equip.includes("band")?"band":ex.equip.includes("floor")?"floor":"standing"}</div></div>
-        <div class="row" style="gap:6px"><span class="secs">${fmt(secsFor(ex,tier))}</span></div>
+        <div class="row" style="gap:6px"><span class="secs">${fmt(durOf(e,id))}</span></div>
       </div>`;}).join("")}</div>
     <span class="small muted mono">${fmt(planSecs(e.plan,tier))} total</span>
     ${done? `<div class="stack"><span class="small muted">How did it feel?</span><div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" data-kind="posture" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div></div>`:""}
@@ -547,7 +597,7 @@ function viewAnchors(){
 }
 
 function viewRunner(){
-  const e=curEntry(); const ex=EXMAP[e.plan[run.i]]; const tot=secsFor(ex,e.tier);
+  const e=curEntry(); const ex=EXMAP[e.plan[run.i]]; const tot=durOf(e,ex.id);
   const next=e.plan[run.i+1]?EXMAP[e.plan[run.i+1]].name:"finish";
   const lead = ex.slot==="video" ? "" : esc(ex.steps[0]);
   return `<section class="card runner">
@@ -571,6 +621,8 @@ function viewFinished(){
   return `<section class="card stack">
     <span class="eyebrow">${roundNo(e)>1 ? `${posture?"Posture · ":""}Session ${roundNo(e)} today` : posture ? "Posture" : "Session "+state.sessions}</span><h2>Done.</h2>
     <p class="small muted">${e.done.length} of ${e.plan.length} exercises · ${fmt(e.secs)}${e.skipped.length?` · skipped ${e.skipped.map(id=>EXMAP[id].name).join(", ")}`:""}</p>
+    ${posture?"": run.unlocked ? `<div class="unlocked"><b>New exercise unlocked.</b> <span class="small muted">It is waiting on Today.</span></div>`
+      : run.counted ? unlockTrack("+1.") : `<p class="small muted">Extra round. Unlocks count your first session each day.</p>`}
     <span class="small muted">How did it feel?</span>
     <div class="feel">${["heavy","fine","good"].map(f=>`<button data-feel="${f}" data-kind="${run.kind}" aria-pressed="${e.feel===f}">${f[0].toUpperCase()+f.slice(1)}</button>`).join("")}</div>
     <button class="btn primary block" data-act="close">Back to today</button>
@@ -601,27 +653,38 @@ function viewHistory(){
   return html;
 }
 
+const libOpen=new Set();   // Library entries left open, kept across re-renders
 function viewLibrary(){
-  const slots=["breath","spine","core","posture","shoulders","hips","legs","wrists","balance","floor","mind","video"];
-  const locked=UNLOCK_ORDER.filter(id=>!state.unlocked.includes(id));
-  let html=`<section class="card stack lib"><div class="row between"><div><span class="eyebrow">In rotation</span><h2>${state.unlocked.length} exercises</h2></div></div>`;
-  for(const s of slots){
-    const ids=state.unlocked.filter(id=>EXMAP[id].slot===s); if(!ids.length) continue;
-    html+=`<div class="eyebrow" style="margin-top:8px">${SLOT_NAMES[s]}</div>`;
-    // personal notes live in synced settings, not in the source, so the code can sit in a public repo
-    if(s==="posture" && profile.postureNote) html+=`<div class="note" style="margin:6px 0 4px;white-space:pre-line">${esc(profile.postureNote)}</div>`;
-    html+=ids.map(id=>exDetails(EXMAP[id])).join("");
+  const slots=["breath","spine","core","shoulders","hips","legs","wrists","balance","floor","mind","video"];
+  const mine=state.unlocked.filter(id=>EXMAP[id] && EXMAP[id].slot!=="posture"), total=CORE.length+UNLOCK_ORDER.length;
+  const locked=UNLOCK_ORDER.filter(id=>!state.unlocked.includes(id)), u=unlockInfo();
+  let html=`<section class="card stack lib"><div><span class="eyebrow">Morning routine</span><h2>${inRotation().length} in rotation</h2></div>
+    <div class="meter" role="img" aria-label="${mine.length} of ${total} exercises unlocked"><i style="width:${(100*mine.length/total).toFixed(1)}%"></i></div>
+    <div class="row between small muted"><span>${mine.length} of ${total} unlocked</span><span>${u.queue?plural(u.left,"session")+" to the next":"all unlocked"}</span></div>
+    <p class="small muted">Open an exercise to switch it off, or to have it in every session. Sessions still fit your chosen time.</p>`;
+  for(const sl of slots){
+    const ids=mine.filter(id=>EXMAP[id].slot===sl); if(!ids.length) continue;
+    html+=`<div class="eyebrow" style="margin-top:8px">${SLOT_NAMES[sl]}</div>`+ids.map(id=>exDetails(EXMAP[id],true)).join("");
   }
-  html+=`</section>`;
-  html+=`<section class="card flat stack lib"><div class="row between"><div><span class="eyebrow">Still to come</span><h3>${locked.length} exercises, one at a time</h3></div><button class="btn sm" data-act="peek">${state.peek?"Hide":"Peek at the list"}</button></div>
-    <p class="small muted">They arrive in this order, roughly one every ${PACE[state.settings.pace].days}+ days once you have done ${PACE[state.settings.pace].sessions} sessions since the last one. Items needing equipment you have turned off wait their turn.</p>
+  html+=`</section>
+  <section class="card stack lib"><div><span class="eyebrow">Posture programme</span><h2>Neck, shoulders, upper back</h2></div>`;
+  // personal notes live in the profile, not in the source, so the code can sit in a public repo
+  if(profile.postureNote) html+=`<div class="note" style="white-space:pre-line">${esc(profile.postureNote)}</div>`;
+  html+=POSTURE.map(id=>exDetails(EXMAP[id],false)).join("")+`</section>`;
+  html+=`<section class="card flat stack lib"><div class="row between"><div><span class="eyebrow">Still to come</span><h3>${plural(locked.length,"exercise")}, one at a time</h3></div><button class="btn sm" data-act="peek">${state.peek?"Hide":"Peek at the list"}</button></div>
+    <p class="small muted">One arrives every ${u.every} sessions, in this order, and you decide whether it joins. Items needing equipment you have switched off wait their turn.</p>
     ${state.peek? locked.map(id=>`<div class="ex locked"><div class="row between"><span>${esc(EXMAP[id].name)}</span><span class="small">${SLOT_NAMES[EXMAP[id].slot]}${equipOK(EXMAP[id])?"":" · needs equipment"}</span></div></div>`).join(""):""}
   </section>`;
   return html;
 }
-function exDetails(ex){
-  return `<details class="ex"><summary><span>${esc(ex.name)}</span><span class="row" style="gap:6px"><span class="small muted mono">${state.counts[ex.id]||0}×</span>${gradeChip(ex.grade)}</span></summary>
-    <div class="body">${FIG.markup(ex.id,"Animation: "+esc(ex.name))}<p class="small muted">${SLOT_NAMES[ex.slot]} · ${fmt(secsFor(ex,15))}${ex.equip.length?" · needs "+ex.equip.join(", "):""}</p>${exGuide(ex,"lib")}</div></details>`;
+function exDetails(ex,editable){
+  const off=state.excluded.includes(ex.id), pin=state.pinned.includes(ex.id);
+  const status = !editable ? "" : off ? `<span class="chip">Off</span>` : pin ? `<span class="chip strong">Every session</span>` : "";
+  const grade = ex.grade==="strong" ? "solid evidence" : ex.grade+" evidence";
+  const ctl = !editable ? "" : `<div class="toggle"><div>In rotation</div><button class="switch" role="switch" aria-checked="${!off}" aria-label="In rotation: ${esc(ex.name)}" data-rot="${ex.id}"></button></div>
+    <div class="toggle"><div><div>Every session</div><div class="small muted">Always included, whatever the length.</div></div><button class="switch" role="switch" aria-checked="${pin}" aria-label="Every session: ${esc(ex.name)}" data-pin="${ex.id}" ${off?"disabled":""}></button></div>`;
+  return `<details class="ex" data-ex="${ex.id}" ${libOpen.has(ex.id)?"open":""}><summary><span class="exname"><span>${esc(ex.name)}</span><span class="small muted">${plural(state.counts[ex.id]||0,"time")} · ${grade}</span></span>${status}</summary>
+    <div class="body">${ctl}${FIG.markup(ex.id,"Animation: "+esc(ex.name))}<p class="small muted">${SLOT_NAMES[ex.slot]} · ${fmt(secsFor(ex,15))}${ex.equip.length?" · needs "+ex.equip.join(", "):""}</p>${exGuide(ex,"lib")}</div></details>`;
 }
 
 /* Structured guide: mini table of contents, then Why / Protects / How / Pitfalls / Evidence / Video. `ctx` keeps ids unique per place. */
@@ -675,15 +738,13 @@ function viewSettings(){
     <div class="toggle"><div>Step or box</div>${sw("equip.step",s.equip.step)}</div>
     <p class="small muted">Changing equipment rebuilds today's plan if you have not started it.</p></section>
   <section class="card stack"><span class="eyebrow">Posture</span>
-    <div class="toggle"><div><div>Posture focus</div><div class="small muted">Unlocks the whole posture set now and guarantees one posture exercise in every version (two at 15 minutes). The 5-minute version grows to about 6.</div></div>${sw("postureFocus",s.postureFocus)}</div>
-    <p class="small muted">${POSTURE.filter(id=>state.unlocked.includes(id)).length} of ${POSTURE.length} posture exercises in rotation.</p>
     <label class="field">Your posture notes <span class="small muted">(shown above the posture exercises in Library; kept with your data, not in the app's code)</span><textarea id="pnote" class="prose" placeholder="Baseline from your side photos, what to re-check and when">${esc(profile.postureNote)}</textarea></label>
     <div class="row"><button class="btn sm" data-act="savepnote">Save notes</button></div></section>
   ${syncCard()}
   ${profileCard()}
   <section class="card stack"><span class="eyebrow">Pace of new exercises</span>
     <div class="seg" role="group">${["slow","normal","fast"].map(p=>`<button data-pace="${p}" aria-pressed="${s.pace===p}">${p}</button>`).join("")}</div>
-    <p class="small muted">Slow: one new item after 7 sessions and 7 days. Normal: 4 sessions and 5 days. Fast: 2 and 2.</p>
+    <p class="small muted">A new exercise every ${PACE.slow.sessions} (slow), ${PACE.normal.sessions} (normal) or ${PACE.fast.sessions} (fast) sessions. Only your first session each day counts.</p>
     <div class="toggle"><div>Pause new exercises</div>${sw("pauseUnlocks",s.pauseUnlocks)}</div>
     <div class="toggle"><div>Sound at the end of each exercise</div>${sw("sound",s.sound)}</div></section>
   <section class="card stack"><span class="eyebrow">Your data</span>
@@ -727,7 +788,7 @@ function bind(){
   v.onchange = ev => { if(ev.target.id==="pfile" && ev.target.files[0]) ev.target.files[0].text().then(loadProfileText); };
   v.onclick = ev => {
     const b=ev.target.closest("button,a,summary"); if(!b) return;
-    if(b.tagName==="SUMMARY"){ setTimeout(FIG.start,30); const d=b.parentElement; if(d.classList.contains("more")&&run){ setTimeout(()=>{run.more=d.open;},0);} return; }
+    if(b.tagName==="SUMMARY"){ setTimeout(FIG.start,30); const d=b.parentElement; if(d.dataset.ex) setTimeout(()=>{ d.open?libOpen.add(d.dataset.ex):libOpen.delete(d.dataset.ex); },0); if(d.classList.contains("more")&&run){ setTimeout(()=>{run.more=d.open;},0);} return; }
     if(b.dataset.jump){ jumpTo(b.dataset.jump); return; }
     if(b.dataset.play){ playVideo(b.dataset.play); return; }
     if(b.dataset.tier){ const t=+b.dataset.tier; const e=todayEntry(true); if(e.done.length){ toast("Press Again to plan another session"); return; } replan(t); render(); return; }
@@ -737,12 +798,17 @@ function bind(){
     if(b.dataset.goto){ tab=b.dataset.goto; render(); return; }
     if(b.dataset.anchor){ const wk=isoWeek(); const L=logFor(todayStr()); const w=L.weeks[wk]||(L.weeks[wk]={}); w[b.dataset.anchor]=Math.max(0,(w[b.dataset.anchor]||0)+(+b.dataset.delta)); saveLog(todayStr()); render(); return; }
     if(b.dataset.savenote){ const id=b.dataset.savenote, t=$("#note_"+id).value.trim(); if(t) profile.notes[id]=t; else delete profile.notes[id]; saveProfile(); toast(t?"Note saved":"Note removed"); return; }
+    if(b.dataset.rot){ const id=b.dataset.rot;
+      if(state.excluded.includes(id)) state.excluded=state.excluded.filter(x=>x!==id);
+      else { if(inRotation().length<=3){ toast("Keep at least 3 exercises in rotation"); return; } state.excluded.push(id); state.pinned=state.pinned.filter(x=>x!==id); }
+      saveState(); const e=todayEntry(true); if(!e.done.length) replan(e.tier); render(); return; }
+    if(b.dataset.pin){ const id=b.dataset.pin; state.pinned = state.pinned.includes(id) ? state.pinned.filter(x=>x!==id) : [...state.pinned,id];
+      saveState(); const e=todayEntry(true); if(!e.done.length) replan(e.tier); toast(state.pinned.includes(id)?"In every session":"Back to rotating"); render(); return; }
     if(b.dataset.themeset){ state.settings.theme=b.dataset.themeset; saveState(); render(); return; }
     if(b.dataset.pace){ state.settings.pace=b.dataset.pace; saveState(); render(); return; }
     if(b.dataset.switch){ const k=b.dataset.switch; const on=b.getAttribute("aria-checked")!=="true";
       if(k.startsWith("equip.")) state.settings.equip[k.slice(6)]=on; else state.settings[k]=on;
-      if(k==="postureFocus" && on){ for(const id of POSTURE){ if(!state.unlocked.includes(id)) state.unlocked.push(id); } if(state.offered && POSTURE.includes(state.offered.id)) state.offered=null; toast("Posture set added to the rotation"); }
-      saveState(); const e=todayEntry(true); if(!e.done.length && (k.startsWith("equip.")||k==="travel"||k==="postureFocus")) replan(e.tier); const pe=postureEntry(true); if(!pe.done.length && (k.startsWith("equip.")||k==="travel")) replanPosture(pe.tier); render(); return; }
+      saveState(); const e=todayEntry(true); if(!e.done.length && (k.startsWith("equip.")||k==="travel")) replan(e.tier); const pe=postureEntry(true); if(!pe.done.length && (k.startsWith("equip.")||k==="travel")) replanPosture(pe.tier); render(); return; }
     switch(b.dataset.act){
       case "start": startSession("main"); break;
       case "startmanual": startSession("main",true); break;
@@ -776,14 +842,13 @@ function bind(){
     }
   };
 }
-document.querySelector("nav.tabs").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; if(run&&!run.finished){ toast("Finish or end the session first"); return; } tab=b.dataset.tab; enter(); render(); window.scrollTo(0,0); });
+document.querySelector("nav.tabs").addEventListener("click",ev=>{ const b=ev.target.closest("button"); if(!b) return; if(run&&!run.finished){ toast("Finish or end the session first"); return; } tab=b.dataset.tab; render(); });
 
 /* ===================== Boot ===================== */
 loadLocal();
 if(state.settings.postureNote && !profile.postureNote){ profile.postureNote=state.settings.postureNote; LS.set("profile",profile); }   // notes saved before the profile existed
 applyProfile();
 const h=(location.hash||"").slice(1); if(["today","history","library","settings"].includes(h)) tab=h;
-enter();
 render();
 connect();
 gistSync(false);

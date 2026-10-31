@@ -12,7 +12,7 @@ gitignored), which is loaded into the app on each device and synced encrypted. N
 | Path | What it is |
 |---|---|
 | `app/src/app.template.html` | Markup and all logic (one inline `<script>`). Placeholders `/*@STYLE@*/`, `/*@EXERCISES@*/`, `/*@VIDEOS@*/`, `@APP_NAME@`. |
-| `app/src/style.css` | All styles. Palette "first light": dark is the default on `:root`; light under `[data-theme=light]` and `[data-theme=system]` + `prefers-color-scheme: light`. Fonts Geist / Geist Mono; tab icons Phosphor light. |
+| `app/src/style.css` | All styles. Style "true-black flat" from the taste-skill app library: warm near-black ground, elevation by lightness, **one sunrise-amber hue on data only** (progress dots, meters, timer bar, calendar); controls stay neutral and the primary button is inverted (near-white, dark text). Dark is the default on `:root`; light under `[data-theme=light]` and `[data-theme=system]`. Fonts Geist / Geist Mono; tab icons Phosphor light. |
 | `app/src/exercises.js` | The exercise library: `const EX = [...]`. Each entry: `id, name, slot, secs, equip, grade, search, why, protects[], steps[], pitfalls[], evidence`. |
 | `app/src/figures.js` | Animated stick figure per exercise (`FIG`): one rig, absolute joint angles, key poses + timing per exercise id, props (wall, bar, band, roller, breath). Injected at `/*@FIGURES@*/`. Shown under the name in the runner and atop each Library entry; still image under reduced motion. Every exercise id needs a spec. |
 | `app/data/videos*.json` | Verified YouTube ids per exercise id (oEmbed-checked). |
@@ -24,15 +24,19 @@ gitignored), which is loaded into the app on each device and synced encrypted. N
 | `private/profile.json` | The user's personal profile (format below). **Gitignored.** Seeded from the original personal texts. |
 | `research/` | Reports and notes behind the routine. **Gitignored: personal health information.** |
 | `archive/` | Original claude.ai export zip. Gitignored. |
+| `.claude/skills/` | Design skills installed for this project only (gitignored): `ui-ux-pro-max` and `design-taste-frontend`. Use both for any UI change: UUPM's searches and pre-delivery checklist, the taste skill's `references/app-screens.md` rules and `node .claude/skills/design-taste-frontend/scripts/inspect.mjs <url> --app` (aim for 0 FAIL, 0 WARN). |
 
 Never edit `app/build/` by hand. The service-worker cache name is a hash of the page, set by the build, so
 there is no version to bump.
 
 ## How it works (the parts you'd touch)
 
-- **Planner** `buildPlan(tier)`: fills slots in `SLOT_ORDER[tier]`; within a slot picks the unlocked exercise done least recently (`state.lastDone`). Balance/floor/standing items are moved to the end. Every 4th session at 10/15 min is a follow-along video day.
-- **Unlocks**: `CORE` (4 items) to start; `UNLOCK_ORDER` is the queue; one item is offered after `PACE[pace].sessions` sessions **and** `.days` days since the last unlock. User accepts or snoozes 7 days.
-- **Posture programme** `buildPosturePlan(tier)`: fixed sequence from the `POSTURE` set, independent of unlocks; own log (`log.posture[date]`) and own counter (`state.postureSessions`).
+- **Two programmes.** The morning routine is the body (CORE + `UNLOCK_ORDER`, slots in `SLOT_ORDER`, never a posture slot). The posture programme (`POSTURE`: neck, shoulders, upper back) is separate, all available from the start, and never offered as an unlock. `available()` excludes posture work, switched-off exercises and missing equipment.
+- **Planner** `buildPlan(tier)`: fills slots in `SLOT_ORDER[tier]` without going over the time; within a slot favourites (`state.pinned`) come first, then the exercise done least recently. Favourites are always added. Balance/floor/standing items go last. Every 4th session at 10/15 min is a follow-along video day, with a video short enough to fit.
+- **Exact length** `fitSecs(plan, tier)`: the planned exercises share exactly `tier*60` seconds in proportion to their usual time (stretched when few are unlocked, trimmed when favourites squeeze in; 15 s steps, 30 s minimum, breathing capped at 2x, videos fixed). Durations are computed from the plan, never stored: use `durOf(entry, id)` and `planSecs()` everywhere a time is shown or run.
+- **Unlocks**: `CORE` (4 items) to start; `UNLOCK_ORDER` is the queue; one item is offered every `PACE[pace].sessions` counted sessions (slow 10, normal 7, fast 4; only the first session of a day counts). `unlockInfo()` gives the progress; `unlockTrack()` draws the dot track shown on Today and after a session. User accepts or snoozes 7 days. `tidyRoutine()` clears posture offers or plans left over from older data.
+- **Posture programme** `buildPosturePlan(tier)`: fixed sequence from the `POSTURE` set, independent of unlocks; own log (`log.posture[date]`) and own counter (`state.postureSessions`); also fitted to exactly 5/10 min.
+- **Editing the routine** (Library): each unlocked morning exercise has "In rotation" (`state.excluded`, at least 3 must stay on) and "Every session" (`state.pinned`). Changing either replans today if nothing is done yet.
 - **Equipment**: `equipOK(ex)` reads `state.settings.equip` and `travel`.
 - **Runner**: `startSession(kind, manual)`; `kind` is `"main"` or `"posture"`; `manual` = no countdown, user presses Next. `advance()`, `goBack()`, `finishSession()` → `commitDay()`.
 - **Video**: `CAN_EMBED` is false inside claude.ai (sandbox blocks iframes) and true anywhere else; then `videoBlock()` renders a tap-to-play youtube-nocookie iframe. `CAN_EMBED` also gates gist sync (it means "not inside claude.ai").
@@ -63,5 +67,5 @@ is JSON with known exercise ids, and tell the user to load it (Settings → Pers
 ## Conventions
 
 - Evidence wording in `exercises.js` is deliberate (graded strong / moderate / thin, with sources named). Keep that tone; do not upgrade claims.
-- Test at 400 px width, light and dark. No horizontal scroll.
+- Test at 375-400 px width, light and dark. No horizontal scroll. Touch targets at least 44 px. Colour only on data; no gradients, glows, blur or entrance animations (app-screen rules).
 - Local test: `python app/build.py && python -m http.server 8080 --directory app/build/site`.

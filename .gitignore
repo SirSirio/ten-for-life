@@ -13,3 +13,6 @@ archive/
 __pycache__/
 .DS_Store
 Thumbs.db
+
+# Locally installed Claude Code skills (UI UX Pro Max, taste-skill): this computer only
+.claude/

@@ -15,8 +15,11 @@ strength, balance and qigong, built fresh every day.
 
 - **Pick your time.** 5, 10 or 15 minutes. The app fills each slot (breath, spine, trunk, posture, hips,
   balance and more) with the exercise you have done least recently, so the routine rotates on its own.
-- **It starts small.** Four exercises on day one. Every few sessions one new exercise is offered, and you
-  decide whether it joins the rotation. The shorter version always beats skipping.
+- **Always the time you chose.** Five minutes is five minutes. With only a few exercises unlocked, each one
+  simply runs longer.
+- **Something new every week.** Four exercises on day one, then one new exercise every seven sessions,
+  with a progress track so you always know how close the next one is. You decide whether it joins.
+- **Make it yours.** Switch off exercises you do not want, or mark favourites to have in every session.
 - **A separate posture programme.** Five or ten minutes of chin tucks, upper-back extension, chest opening
   and wall work, tracked on its own.
 - **Guided or self-paced.** A countdown with a soft chime, or move on when you are ready. Every exercise

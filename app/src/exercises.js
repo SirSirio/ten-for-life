@@ -286,7 +286,7 @@ const EX = [
   pitfalls:["Leaning back to pull. Stand tall; if the band is too strong, step closer.","Elbows dropping below the hands. High elbows are what make it a face pull rather than a row.","Rushing. The slow return is half the benefit."],
   evidence:"Practitioner-level, from strength coaching and shoulder rehabilitation; it is a staple in both, but not trialled on its own. General rotator-cuff and scapular strengthening evidence applies."},
 
- {id:"glute_bridge",name:"Glute bridge",slot:"posture",secs:60,equip:["floor"],grade:"moderate",
+ {id:"glute_bridge",name:"Glute bridge",slot:"hips",secs:60,equip:["floor"],grade:"moderate",
   search:yt("glute bridge technique"),
   why:"Posture is not only the shoulders. A pelvis tipped forward (belly out, lower back arched) is the lower half of the same pattern, and it usually means the glutes are asleep and the hip flexors are doing their job. The bridge wakes the glutes without loading the spine.",
   protects:["Anterior pelvic tilt and the lumbar arch that goes with it.","Lower-back strain in standing and lifting, by giving the hips the extension job.","Hip-flexor dominance, which pairs with the kneeling stretch from the other direction."],
