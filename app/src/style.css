@@ -230,3 +230,4 @@ textarea.short{min-height:72px}
 .lib .ex summary .chip{flex:none}
 /* the switch draws at 32px; its tap area is 44px tall */
 .switch::before{content:"";position:absolute;inset:-6px -4px}
+.runner .timeup{margin:0;text-align:center;font-weight:600}

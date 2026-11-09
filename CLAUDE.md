@@ -38,7 +38,7 @@ there is no version to bump.
 - **Posture programme** `buildPosturePlan(tier)`: fixed sequence from the `POSTURE` set, independent of unlocks; own log (`log.posture[date]`) and own counter (`state.postureSessions`); also fitted to exactly 5/10 min.
 - **Editing the routine** (Library): each unlocked morning exercise has "In rotation" (`state.excluded`, at least 3 must stay on) and "Every session" (`state.pinned`). Changing either replans today if nothing is done yet.
 - **Equipment**: `equipOK(ex)` reads `state.settings.equip` and `travel`.
-- **Runner**: `startSession(kind, manual)`; `kind` is `"main"` or `"posture"`; `manual` = no countdown, user presses Next. `advance()`, `goBack()`, `finishSession()` → `commitDay()`.
+- **Runner**: `startSession(kind, manual)`; `kind` is `"main"` or `"posture"`; `manual` = no countdown, user presses Next. `advance()`, `goBack()`, `finishSession()` → `commitDay()`. When a countdown ends the runner stops at 0:00 (`run.timeUp`) and waits for Next, unless `state.settings.autoNext` (Settings → Move on automatically, off by default) is on.
 - **Video**: `CAN_EMBED` is false inside claude.ai (sandbox blocks iframes) and true anywhere else; then `videoBlock()` renders a tap-to-play youtube-nocookie iframe. `CAN_EMBED` also gates gist sync (it means "not inside claude.ai").
 
 ## Data and sync

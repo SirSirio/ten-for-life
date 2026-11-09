@@ -65,7 +65,7 @@ const daysBetween = (a,b) => Math.round((new Date(b+"T12:00")-new Date(a+"T12:00
 const isoWeek = (d=new Date()) => { const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y=t.getUTCFullYear(); const w=Math.ceil(((t-Date.UTC(y,0,1))/864e5+1)/7); return y+"-W"+String(w).padStart(2,"0"); };
 
 const defaultState = () => ({v:1,created:todayStr(),
-  settings:{equip:{bar:true,band:true,floor:true,step:false},travel:false,pace:"normal",sound:true,pauseUnlocks:false,tier:10,postureTier:5,theme:"dark"},
+  settings:{equip:{bar:true,band:true,floor:true,step:false},travel:false,pace:"normal",sound:true,autoNext:false,pauseUnlocks:false,tier:10,postureTier:5,theme:"dark"},
   unlocked:[...CORE],offered:null,snoozed:{},lastUnlock:{date:todayStr(),sessionsAt:0},
   sessions:0,postureSessions:0,lastDone:{},counts:{},benchmarks:[],peek:false,excluded:[],pinned:[]});
 const defaultLog = () => ({days:{},weeks:{},posture:{}});
@@ -419,12 +419,16 @@ function startSession(kind="main",manual=false){
 function tick(){
   clearInterval(run.timer);
   run.timer=setInterval(()=>{
-    if(run.paused) return;
-    run.left-=1;
+    if(run.paused || run.timeUp) return;
+    run.left=Math.max(0,run.left-1);
     const el=document.getElementById("clock"); const bar=document.getElementById("bar");
     if(el) el.textContent=fmt(run.left);
     if(bar){ const e=curEntry(); const tot=durOf(e,e.plan[run.i]); bar.style.width=(100*(tot-run.left)/tot)+"%"; }
-    if(run.left<=0){ beep(2); advance(true); }
+    if(run.left<=0){
+      if(state.settings.autoNext){ beep(2); advance(true); return; }
+      // time is up: stay on this exercise until Next is pressed (Settings → Move on automatically)
+      run.timeUp=true; beep(2); buzz(12); render();
+    }
   },1000);
 }
 function advance(done){
@@ -432,13 +436,13 @@ function advance(done){
   (done?run.done:run.skipped).push(id);
   run.i+=1;
   if(run.i>=e.plan.length){ finishSession(); return; }
-  run.left=durOf(e,e.plan[run.i]); run.more=false; render();
+  run.left=durOf(e,e.plan[run.i]); run.more=false; run.timeUp=false; render();
 }
 function goBack(){
   if(!run || run.i===0) return;
   const e=curEntry(); run.i-=1; const id=e.plan[run.i];
   run.done=run.done.filter(x=>x!==id); run.skipped=run.skipped.filter(x=>x!==id);
-  run.left=durOf(e,id); run.more=false; render();
+  run.left=durOf(e,id); run.more=false; run.timeUp=false; render();
 }
 function finishSession(){
   clearInterval(run.timer); releaseWake();
@@ -606,10 +610,10 @@ function viewRunner(){
     ${FIG.markup(ex.id,"Animation: "+esc(ex.name))}
     ${run.manual
       ? `<div class="big manual">${fmt(tot)} <span class="small muted" style="font-family:var(--body)">suggested</span></div><div class="bar"><i style="width:${100*run.i/e.plan.length}%"></i></div>`
-      : `<div class="big" id="clock">${fmt(run.left)}</div><div class="bar"><i id="bar" style="width:${100*(tot-run.left)/tot}%"></i></div>`}
+      : `<div class="big" id="clock">${fmt(run.left)}</div><div class="bar"><i id="bar" style="width:${100*(tot-run.left)/tot}%"></i></div>${run.timeUp?`<p class="timeup" role="status">Time's up. Press Next when you're ready.</p>`:""}`}
     ${ex.slot==="video"?videoBlock(ex,"runner"):`<p class="lead">${lead}</p>`}
     <div class="row actions">
-      ${run.manual ? `<button class="btn primary" data-act="done">Next</button>` : `<button class="btn primary" data-act="pause">${run.paused?"Resume":"Pause"}</button><button class="btn" data-act="done">Next</button>`}
+      ${run.manual || run.timeUp ? `<button class="btn primary" data-act="done">Next</button>` : `<button class="btn primary" data-act="pause">${run.paused?"Resume":"Pause"}</button><button class="btn" data-act="done">Next</button>`}
     </div>
     <div class="row actions"><button class="btn" data-act="back" ${run.i===0?"disabled":""}>Back</button><button class="btn" data-act="skip">Skip</button></div>
     <div class="next">Next: ${esc(next)}</div>
@@ -746,7 +750,8 @@ function viewSettings(){
     <div class="seg" role="group">${["slow","normal","fast"].map(p=>`<button data-pace="${p}" aria-pressed="${s.pace===p}">${p}</button>`).join("")}</div>
     <p class="small muted">A new exercise every ${PACE.slow.sessions} (slow), ${PACE.normal.sessions} (normal) or ${PACE.fast.sessions} (fast) sessions. Only your first session each day counts.</p>
     <div class="toggle"><div>Pause new exercises</div>${sw("pauseUnlocks",s.pauseUnlocks)}</div>
-    <div class="toggle"><div>Sound at the end of each exercise</div>${sw("sound",s.sound)}</div></section>
+    <div class="toggle"><div>Sound at the end of each exercise</div>${sw("sound",s.sound)}</div>
+    <div class="toggle"><div><div>Move on automatically</div><div class="small muted">When the timer ends, go straight to the next exercise. Off: the timer stops and waits for Next.</div></div>${sw("autoNext",s.autoNext)}</div></section>
   <section class="card stack"><span class="eyebrow">Your data</span>
     <p class="small muted">${online?"Saved to your account and synced between devices.":"Saved in this browser only."} Export is a plain text copy you can keep anywhere; import replaces what is here.</p>
     <div class="row"><button class="btn sm" data-act="export">Copy export</button><button class="btn sm" data-act="showimport">Import…</button></div>
